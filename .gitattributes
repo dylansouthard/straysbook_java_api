@@ -1,0 +1,9 @@
+/mvnw text eol=lf
+*.cmd text eol=crlf
+# Handle line endings automatically
+* text=auto
+
+# Force Unix-style line endings for shell and script files
+*.sh text eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf

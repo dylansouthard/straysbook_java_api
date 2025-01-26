@@ -1,0 +1,64 @@
+# Maven build folder
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# STS (Spring Tool Suite)
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# VS Code
+.vscode/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+*.gz
+
+# Lombok delombok-generated files
+delombok/
+
+# Application-specific
+application.properties
+application-test.properties
+
+# Database files
+*.h2.db
+*.mv.db
+
+# Build output
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Temporary files
+*.tmp
+*.swp
+*.bak
+*.old
+*.orig
+
+# Java class files
+*.class
