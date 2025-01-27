@@ -1,9 +1,14 @@
 package info.dylansouthard.StraysBookAPI.model.user;
 
+import info.dylansouthard.StraysBookAPI.exception.DuplicateOAuthProviderException;
 import info.dylansouthard.StraysBookAPI.model.Animal;
 import info.dylansouthard.StraysBookAPI.model.CareEvent;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,6 +16,7 @@ import java.util.List;
 
 @Entity
 @Table(name="app_users")
+@Where(clause = "is_deleted = false")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter @Setter
@@ -50,15 +56,22 @@ public class User {
     @ManyToMany
     private List<CareEvent> careEvents = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<OAuthProvider> oAuthProviders = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AuthToken> authTokens = new ArrayList<>();
 
 //    @ManyToMany(fetch=FetchType.LAZY)
 //    private List<Litter> watchedLitters = new ArrayList<>();
 
+    public void addOAuthProvider(OAuthProvider provider) {
+        if (this.oAuthProviders.stream().anyMatch(p->p.getProvider().equals(provider.getProvider()))){
+            throw new DuplicateOAuthProviderException();
+        }
+        this.oAuthProviders.add(provider);
+        provider.setUser(this);
+    }
 
     public User(String displayName, String email) {
         this.displayName = displayName;
