@@ -13,6 +13,7 @@ import org.hibernate.annotations.Where;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 @Table(name="app_users")
@@ -71,6 +72,17 @@ public class User {
         }
         this.oAuthProviders.add(provider);
         provider.setUser(this);
+    }
+
+    public void addAuthToken(AuthToken authToken) {
+        Optional<AuthToken> existingToken = this.authTokens.stream()
+                .filter(token -> token.getDeviceId().equals(authToken.getDeviceId())
+                        && token.getType().equals(authToken.getType()))
+                .findFirst();
+
+        existingToken.ifPresent(this.authTokens::remove);
+        this.authTokens.add(authToken);
+        authToken.setUser(this);
     }
 
     public User(String displayName, String email) {

@@ -1,7 +1,9 @@
 package info.dylansouthard.StraysBookAPI.repository;
 
 import info.dylansouthard.StraysBookAPI.exception.DuplicateOAuthProviderException;
+import info.dylansouthard.StraysBookAPI.model.enums.AuthTokenType;
 import info.dylansouthard.StraysBookAPI.model.enums.OAuthProviderType;
+import info.dylansouthard.StraysBookAPI.model.user.AuthToken;
 import info.dylansouthard.StraysBookAPI.model.user.OAuthProvider;
 import info.dylansouthard.StraysBookAPI.model.user.User;
 import jakarta.persistence.EntityManager;
@@ -11,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -153,6 +156,54 @@ public class UserRepositoryTest {
         User savedUser = userRepository.save(user);
         assertThrows(DuplicateOAuthProviderException.class, ()->savedUser.addOAuthProvider(new OAuthProvider(OAuthProviderType.GOOGLE, "456google")), "Should throw exception on duplicate OAuthProvider" );
     }
+
+    @Test
+    public void When_AddingAuthToken_Expect_TokenAddedSuccessfully() {
+        User user = userRepository.save(validUser);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime later = now.plusHours(1);
+
+        // Create and add the token
+        AuthToken authToken = new AuthToken(AuthTokenType.ACCESS, "token123", now, later, "device123");
+        user.addAuthToken(authToken);
+        userRepository.save(user);
+
+        // Reload the user to verify persistence
+        User savedUser = userRepository.findById(user.getId()).orElseThrow();
+
+        // Assertions
+        assertEquals(1, savedUser.getAuthTokens().size(), "User should have 1 token after addition");
+        assertEquals(authToken.getToken(), savedUser.getAuthTokens().getFirst().getToken(), "Token should match saved token");
+        assertEquals("device123", savedUser.getAuthTokens().getFirst().getDeviceId(), "Device ID should match");
+    }
+
+    @Test
+    public void When_AddingAuthTokenForSameDevice_Expect_TokenReplacedSuccessfully() {
+        User user = userRepository.save(validUser);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime later = now.plusHours(1);
+
+        // Add the first token
+        AuthToken authTokenOne = new AuthToken(AuthTokenType.ACCESS, "token123", now, later, "device123");
+        user.addAuthToken(authTokenOne);
+        userRepository.save(user);
+
+        // Add a second token for the same device
+        AuthToken authTokenTwo = new AuthToken(AuthTokenType.ACCESS, "token567", now, later, "device123");
+        user.addAuthToken(authTokenTwo);
+        userRepository.save(user);
+
+        // Reload the user to verify persistence
+        User savedUser = userRepository.findById(user.getId()).orElseThrow();
+
+        // Assertions
+        assertEquals(1, savedUser.getAuthTokens().size(), "User should only have 1 token after replacement");
+        assertTrue(savedUser.getAuthTokens().stream()
+                .filter(token -> token.getToken().equals(authTokenOne.getToken())).findFirst().isEmpty(), "User should not contain the first token");
+
+        assertEquals(authTokenTwo.getToken(), savedUser.getAuthTokens().getFirst().getToken(), "Token should match the new token ID");
+    }
+
 
     //TODO: TEST OTHER RELATIONSHIPS
 }

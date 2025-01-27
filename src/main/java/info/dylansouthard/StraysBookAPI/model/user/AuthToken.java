@@ -38,4 +38,12 @@ public class AuthToken {
     @JoinColumn(name="user_id", nullable = false)
     private User user;
 
+
+    public AuthToken(AuthTokenType type, String token, LocalDateTime issuedAt, LocalDateTime expiresAt, String deviceId) {
+        this.type = type;
+        this.token = token;
+        this.issuedAt = issuedAt;
+        this.expiresAt = expiresAt;
+        this.deviceId = deviceId;
+    }
 }
