@@ -28,6 +28,10 @@ public class UserRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private AuthTokenRepository authTokenRepository;
+
     private User validUser;
 
     // --- HELPER METHODS ---
@@ -35,6 +39,14 @@ public class UserRepositoryTest {
     @BeforeEach
     public void createValidUser() {
         this.validUser = new User("Bing Bong", "bing@bong.com");
+    }
+
+    public AuthToken createAuthToken(String token) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime later = now.plusHours(1);
+
+        // Add the first token
+       return new AuthToken(AuthTokenType.ACCESS, token, now, later, "device123");
     }
 
 
@@ -57,6 +69,7 @@ public class UserRepositoryTest {
         assertNotNull(savedUser.getId(), "ID should not be null after saving");
         assertEquals("Bing Bong", savedUser.getDisplayName(), "Display name should match");
     }
+
 
     //Retrieve
     @Test
@@ -150,6 +163,33 @@ public class UserRepositoryTest {
     }
 
     @Test
+    public void When_RemovingOAuthProvider_Expect_ProviderRemovedFromDB() {
+        //Save the user and add an OAuthProvider
+        User user = userRepository.save(validUser);
+        OAuthProvider provider = new OAuthProvider(OAuthProviderType.GOOGLE, "123google");
+        user.addOAuthProvider(provider);
+        userRepository.saveAndFlush(user);
+
+        //Verify the provider exists in the database
+        User savedUser = userRepository.findById(user.getId()).orElseThrow();
+        assertEquals(1, savedUser.getOAuthProviders().size(), "User should have 1 OAuth provider");
+        assertEquals("123google", savedUser.getOAuthProviders().getFirst().getProviderUserId(), "OAuthProviderID should match");
+
+        // Remove the provider and save the user
+        savedUser.getOAuthProviders().clear();
+        userRepository.saveAndFlush(savedUser);
+
+        //Verify the provider is removed from the database using EntityManager
+        String jpql = "SELECT COUNT(p) FROM OAuthProvider p WHERE p.providerUserId = :providerUserId";
+        Long count = entityManager.createQuery(jpql, Long.class)
+                .setParameter("providerUserId", "123google")
+                .getSingleResult();
+
+        assertEquals(0, count, "OAuthProvider should be removed from the database");
+    }
+
+
+    @Test
     public void When_AddingDuplicateOAuthProvider_Expect_ThrowException() {
         User user = userRepository.save(validUser);
         user.addOAuthProvider(new OAuthProvider(OAuthProviderType.GOOGLE, "123google"));
@@ -157,14 +197,15 @@ public class UserRepositoryTest {
         assertThrows(DuplicateOAuthProviderException.class, ()->savedUser.addOAuthProvider(new OAuthProvider(OAuthProviderType.GOOGLE, "456google")), "Should throw exception on duplicate OAuthProvider" );
     }
 
+
+
     @Test
     public void When_AddingAuthToken_Expect_TokenAddedSuccessfully() {
         User user = userRepository.save(validUser);
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime later = now.plusHours(1);
+
 
         // Create and add the token
-        AuthToken authToken = new AuthToken(AuthTokenType.ACCESS, "token123", now, later, "device123");
+        AuthToken authToken = createAuthToken("token123");
         user.addAuthToken(authToken);
         userRepository.save(user);
 
@@ -180,16 +221,15 @@ public class UserRepositoryTest {
     @Test
     public void When_AddingAuthTokenForSameDevice_Expect_TokenReplacedSuccessfully() {
         User user = userRepository.save(validUser);
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime later = now.plusHours(1);
+
 
         // Add the first token
-        AuthToken authTokenOne = new AuthToken(AuthTokenType.ACCESS, "token123", now, later, "device123");
+        AuthToken authTokenOne = createAuthToken("token123");
         user.addAuthToken(authTokenOne);
         userRepository.save(user);
 
         // Add a second token for the same device
-        AuthToken authTokenTwo = new AuthToken(AuthTokenType.ACCESS, "token567", now, later, "device123");
+        AuthToken authTokenTwo = createAuthToken("token456");
         user.addAuthToken(authTokenTwo);
         userRepository.save(user);
 
@@ -202,6 +242,22 @@ public class UserRepositoryTest {
                 .filter(token -> token.getToken().equals(authTokenOne.getToken())).findFirst().isEmpty(), "User should not contain the first token");
 
         assertEquals(authTokenTwo.getToken(), savedUser.getAuthTokens().getFirst().getToken(), "Token should match the new token ID");
+    }
+
+    @Test
+    public void When_RemovingAuthTokenFromUser_Expect_TokenRemovedFromDBSuccessfully() {
+        User user = userRepository.save(validUser);
+        AuthToken authToken = createAuthToken("token123");
+        user.addAuthToken(authToken);
+        userRepository.saveAndFlush(user);
+        AuthToken savedAuthToken = user.getAuthTokens().getFirst();
+
+        assertTrue(authTokenRepository.findById(savedAuthToken.getId()).isPresent(), "Added token should be found");
+
+        user.getAuthTokens().clear();
+        userRepository.saveAndFlush(user);
+
+        assertFalse(authTokenRepository.findById(savedAuthToken.getId()).isPresent(), "Removed token should not be found");
     }
 
 
