@@ -5,9 +5,10 @@ import jakarta.persistence.Embeddable;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+
 
 @Getter
 @Setter
@@ -15,7 +16,8 @@ import org.locationtech.jts.geom.Coordinate;
 @Embeddable
 public class GeoSchema {
 
-    @Column(columnDefinition = "GEOGRAPHY(Point, 4326)")
+//    @Column(columnDefinition = "geometry(Point,4326)")
+@Column(columnDefinition = "GEOMETRY")
     private Point location;
 
     public GeoSchema(double latitude, double longitude) {

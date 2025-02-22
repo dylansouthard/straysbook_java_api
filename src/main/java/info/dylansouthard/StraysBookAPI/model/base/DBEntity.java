@@ -1,8 +1,8 @@
 package info.dylansouthard.StraysBookAPI.model.base;
 
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
@@ -10,16 +10,16 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
+
 @MappedSuperclass
 @ToString
-@NoArgsConstructor
-
-public class DBEntity {
+@Getter @Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public abstract class DBEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @CreationTimestamp

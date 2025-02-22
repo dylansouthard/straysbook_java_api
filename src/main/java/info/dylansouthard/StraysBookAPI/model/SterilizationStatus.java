@@ -1,15 +1,21 @@
 package info.dylansouthard.StraysBookAPI.model;
 
-import jakarta.persistence.*;
+import info.dylansouthard.StraysBookAPI.model.base.VerifiableDBEntity;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name="sterilization_statuses")
 @NoArgsConstructor
-public class SterilizationStatus {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@Getter @Setter
+public class SterilizationStatus extends VerifiableDBEntity {
 
     private Boolean sterilized;
+
+    public SterilizationStatus(Boolean sterilized) {
+        this.sterilized = sterilized;
+    }
 }

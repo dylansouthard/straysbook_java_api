@@ -10,7 +10,6 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name="oauth_providers")
-
 @NoArgsConstructor
 public class OAuthProvider {
     @Id

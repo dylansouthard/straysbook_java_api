@@ -14,12 +14,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Embeddable
 public class Status {
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private StatusType type = StatusType.STRAY;
 
-    @Column
-    private String notes;
 
 //    @OneToOne
 //    private User registeredBy;

@@ -3,30 +3,22 @@ package info.dylansouthard.StraysBookAPI.model.user;
 import info.dylansouthard.StraysBookAPI.exception.DuplicateOAuthProviderException;
 import info.dylansouthard.StraysBookAPI.model.Animal;
 import info.dylansouthard.StraysBookAPI.model.CareEvent;
+import info.dylansouthard.StraysBookAPI.model.base.DBEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hibernate.annotations.Where;
+import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 @Entity
 @Table(name="app_users")
-@Where(clause = "is_deleted = false")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter @Setter
-public class User {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-
-    private Long id;
+@EqualsAndHashCode(callSuper = true, exclude = {"watchedAnimals", "careEvents"})
+public class User extends DBEntity {
 
     @Column(nullable = false)
     private String displayName;
@@ -52,19 +44,19 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"), // Foreign key for User
             inverseJoinColumns = @JoinColumn(name = "animal_id") // Foreign key for Animal
     )
-    private List<Animal> watchedAnimals = new ArrayList<>();
+    private Set<Animal> watchedAnimals = new HashSet<>();
 
     @ManyToMany
-    private List<CareEvent> careEvents = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<OAuthProvider> oAuthProviders = new ArrayList<>();
+    private Set<CareEvent> careEvents = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AuthToken> authTokens = new ArrayList<>();
+    private Set<OAuthProvider> oAuthProviders = new HashSet<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<AuthToken> authTokens = new HashSet<>();
 
 //    @ManyToMany(fetch=FetchType.LAZY)
-//    private List<Litter> watchedLitters = new ArrayList<>();
+//    private Set<Litter> watchedLitters = new HashSet<>();
 
     public void addOAuthProvider(OAuthProvider provider) {
         if (this.oAuthProviders.stream().anyMatch(p->p.getProvider().equals(provider.getProvider()))){
@@ -83,6 +75,25 @@ public class User {
         existingToken.ifPresent(this.authTokens::remove);
         this.authTokens.add(authToken);
         authToken.setUser(this);
+    }
+
+    @PreRemove
+    private void cleanUpRelationships() {
+        for (Animal animal : this.watchedAnimals) {
+            animal.getUsersWatching().remove(this);
+        }
+    }
+
+    public void addWatchedAnimal(Animal animal) {
+        this.watchedAnimals.add(animal);
+        if (!animal.getUsersWatching().contains(this)) {
+            animal.getUsersWatching().add(this); // ✅ Ensure both sides are in sync
+        }
+    }
+
+    public void removeWatchedAnimal(Animal animal) {
+        this.watchedAnimals.remove(animal);
+        animal.getUsersWatching().remove(this);
     }
 
     public User(String displayName, String email) {

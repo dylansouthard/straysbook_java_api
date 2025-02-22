@@ -1,17 +1,16 @@
 package info.dylansouthard.StraysBookAPI.repository;
 
 import info.dylansouthard.StraysBookAPI.exception.DuplicateOAuthProviderException;
+import info.dylansouthard.StraysBookAPI.model.Animal;
+import info.dylansouthard.StraysBookAPI.model.enums.AnimalType;
 import info.dylansouthard.StraysBookAPI.model.enums.AuthTokenType;
 import info.dylansouthard.StraysBookAPI.model.enums.OAuthProviderType;
+import info.dylansouthard.StraysBookAPI.model.enums.SexType;
 import info.dylansouthard.StraysBookAPI.model.user.AuthToken;
 import info.dylansouthard.StraysBookAPI.model.user.OAuthProvider;
 import info.dylansouthard.StraysBookAPI.model.user.User;
-import jakarta.persistence.EntityManager;
-import org.junit.jupiter.api.BeforeEach;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -19,27 +18,9 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-@DataJpaTest
-@ActiveProfiles("test")
-public class UserRepositoryTest {
+public class UserRepositoryTests extends RepositoryTestContainer {
 
-    @Autowired
-    private EntityManager entityManager;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private AuthTokenRepository authTokenRepository;
-
-    private User validUser;
-
-    // --- HELPER METHODS ---
-
-    @BeforeEach
-    public void createValidUser() {
-        this.validUser = new User("Bing Bong", "bing@bong.com");
-    }
 
     public AuthToken createAuthToken(String token) {
         LocalDateTime now = LocalDateTime.now();
@@ -49,13 +30,6 @@ public class UserRepositoryTest {
        return new AuthToken(AuthTokenType.ACCESS, token, now, later, "device123");
     }
 
-
-//    @AfterEach
-//    public void tearDown() {
-//        this.userRepository.deleteAll();
-//        entityManager.clear();
-//        this.validUser = null;
-//    }
 
     // --- TEST METHODS ---
 
@@ -159,10 +133,11 @@ public class UserRepositoryTest {
         User user = userRepository.save(validUser);
         user.addOAuthProvider(new OAuthProvider(OAuthProviderType.GOOGLE, "123google"));
         User savedUser = userRepository.save(user);
-        assertEquals("123google", savedUser.getOAuthProviders().getFirst().getProviderUserId(), "OAuthProviderID should match saved id");
+        assertEquals("123google", savedUser.getOAuthProviders().stream().findFirst().get().getProviderUserId(), "OAuthProviderID should match saved id");
     }
 
     @Test
+    @Transactional
     public void When_RemovingOAuthProvider_Expect_ProviderRemovedFromDB() {
         //Save the user and add an OAuthProvider
         User user = userRepository.save(validUser);
@@ -173,7 +148,7 @@ public class UserRepositoryTest {
         //Verify the provider exists in the database
         User savedUser = userRepository.findById(user.getId()).orElseThrow();
         assertEquals(1, savedUser.getOAuthProviders().size(), "User should have 1 OAuth provider");
-        assertEquals("123google", savedUser.getOAuthProviders().getFirst().getProviderUserId(), "OAuthProviderID should match");
+        assertEquals("123google", savedUser.getOAuthProviders().stream().findFirst().get().getProviderUserId(), "OAuthProviderID should match");
 
         // Remove the provider and save the user
         savedUser.getOAuthProviders().clear();
@@ -200,6 +175,7 @@ public class UserRepositoryTest {
 
 
     @Test
+    @Transactional
     public void When_AddingAuthToken_Expect_TokenAddedSuccessfully() {
         User user = userRepository.save(validUser);
 
@@ -214,11 +190,12 @@ public class UserRepositoryTest {
 
         // Assertions
         assertEquals(1, savedUser.getAuthTokens().size(), "User should have 1 token after addition");
-        assertEquals(authToken.getToken(), savedUser.getAuthTokens().getFirst().getToken(), "Token should match saved token");
-        assertEquals("device123", savedUser.getAuthTokens().getFirst().getDeviceId(), "Device ID should match");
+        assertEquals(authToken.getToken(), savedUser.getAuthTokens().stream().findFirst().get().getToken(), "Token should match saved token");
+        assertEquals("device123", savedUser.getAuthTokens().stream().findFirst().get().getDeviceId(), "Device ID should match");
     }
 
     @Test
+    @Transactional
     public void When_AddingAuthTokenForSameDevice_Expect_TokenReplacedSuccessfully() {
         User user = userRepository.save(validUser);
 
@@ -241,16 +218,17 @@ public class UserRepositoryTest {
         assertTrue(savedUser.getAuthTokens().stream()
                 .filter(token -> token.getToken().equals(authTokenOne.getToken())).findFirst().isEmpty(), "User should not contain the first token");
 
-        assertEquals(authTokenTwo.getToken(), savedUser.getAuthTokens().getFirst().getToken(), "Token should match the new token ID");
+        assertEquals(authTokenTwo.getToken(), savedUser.getAuthTokens().stream().findFirst().get().getToken(), "Token should match the new token ID");
     }
 
     @Test
+    @Transactional
     public void When_RemovingAuthTokenFromUser_Expect_TokenRemovedFromDBSuccessfully() {
         User user = userRepository.save(validUser);
         AuthToken authToken = createAuthToken("token123");
         user.addAuthToken(authToken);
         userRepository.saveAndFlush(user);
-        AuthToken savedAuthToken = user.getAuthTokens().getFirst();
+        AuthToken savedAuthToken = user.getAuthTokens().stream().findFirst().get();
 
         assertTrue(authTokenRepository.findById(savedAuthToken.getId()).isPresent(), "Added token should be found");
 
@@ -259,6 +237,56 @@ public class UserRepositoryTest {
 
         assertFalse(authTokenRepository.findById(savedAuthToken.getId()).isPresent(), "Removed token should not be found");
     }
+
+    private void addAnimalToUser(Animal animal, User user) {
+        user.addWatchedAnimal(animal);
+        userRepository.saveAndFlush(user);
+        animalRepository.saveAndFlush(animal);
+    }
+
+    @Test
+    @Transactional
+    public void When_UpdatingWatchlist_Expect_WatchlistUpdatedSuccessfully() {
+
+
+        // Arrange - Save user and animal
+        User user = userRepository.save(validUser);
+        Animal animal = animalRepository.save(validAnimal);
+
+        // Act - Add animal to user's watchlist
+        addAnimalToUser(animal, user);
+
+        // Assert - Animal should be in watchlist
+        assertEquals(1, user.getWatchedAnimals().size(), "Animal should be added to user list");
+        Animal fetchedAnimal = animalRepository.findById(animal.getId()).orElseThrow();
+        assertEquals(1, fetchedAnimal.getUsersWatching().size(), "Animal should be watched by user");
+
+        // Act - Remove animal from watchlist
+        user.removeWatchedAnimal(animal);
+        userRepository.saveAndFlush(user);
+        animalRepository.saveAndFlush(animal);
+
+        // Assert - Animal should no longer be in watchlist
+        assertEquals(0, user.getWatchedAnimals().size(), "Animal should be removed from user list");
+        fetchedAnimal = animalRepository.findById(animal.getId()).orElseThrow();
+        assertEquals(0, fetchedAnimal.getUsersWatching().size(), "Animal should no longer be watched by user");
+
+        // Act - Add animal to user's watchlist
+        user.addWatchedAnimal(animal);
+        userRepository.saveAndFlush(user);
+        animalRepository.saveAndFlush(animal);
+        animalRepository.deleteById(animal.getId());
+
+        assertEquals(0, user.getWatchedAnimals().size(), "Animal should be removed from user list");
+
+
+        Animal replacementAnimal = animalRepository.save(new Animal(AnimalType.CAT, SexType.FEMALE, "Sabi" ));
+        addAnimalToUser(replacementAnimal, user);
+        userRepository.deleteById(user.getId());
+
+        assertEquals(0, replacementAnimal.getUsersWatching().size(), "User should be removed from animal list");
+    }
+
 
 
     //TODO: TEST OTHER RELATIONSHIPS

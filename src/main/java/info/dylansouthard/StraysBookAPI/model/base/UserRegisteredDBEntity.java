@@ -1,19 +1,29 @@
 package info.dylansouthard.StraysBookAPI.model.base;
 
+import info.dylansouthard.StraysBookAPI.model.user.User;
 import jakarta.persistence.Column;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 
 @Getter
 @Setter
 @MappedSuperclass
-public class UserRegisteredDBEntity extends DBEntity {
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public abstract class UserRegisteredDBEntity extends DBEntity {
 
     @Column
-    private String notes;
+    protected String notes;
 
-//    @OneToOne
-//    private User registeredBy;
+    @ManyToOne
+    protected User registeredBy;
+
+    public UserRegisteredDBEntity(User registeredBy) {
+        this.registeredBy = registeredBy;
+    }
 }

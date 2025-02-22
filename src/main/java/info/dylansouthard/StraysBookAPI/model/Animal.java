@@ -1,27 +1,29 @@
 package info.dylansouthard.StraysBookAPI.model;
 
+import info.dylansouthard.StraysBookAPI.model.base.UserRegisteredDBEntity;
 import info.dylansouthard.StraysBookAPI.model.enums.AnimalType;
 import info.dylansouthard.StraysBookAPI.model.enums.ConditionType;
 import info.dylansouthard.StraysBookAPI.model.enums.SexType;
+import info.dylansouthard.StraysBookAPI.model.enums.StatusType;
 import info.dylansouthard.StraysBookAPI.model.shared.GeoSchema;
-import info.dylansouthard.StraysBookAPI.model.shared.Status;
 import info.dylansouthard.StraysBookAPI.model.user.User;
 import jakarta.persistence.*;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name="animals")
+@AllArgsConstructor
 @NoArgsConstructor
-public class Animal {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@Getter @Setter
+@EqualsAndHashCode(callSuper = true, exclude = {"usersWatching", "careEvents"})
+public class Animal extends UserRegisteredDBEntity {
 
     @Column(name="animal_type",nullable = false)
     @Enumerated(EnumType.STRING)
@@ -32,6 +34,7 @@ public class Animal {
     private SexType sex = SexType.UNKNOWN;
 
     @Column(nullable = false)
+
     private String name;
 
     @Column
@@ -70,20 +73,24 @@ public class Animal {
     @Embedded
     private GeoSchema location;
 
-    @Embedded
-    private Status status = new Status();
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private StatusType statusType = StatusType.STRAY;
+
+    @Column
+    private String statusNotes;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     private SterilizationStatus sterilizationStatus;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Vaccination> vaccinations = new ArrayList<>();
+    private Set<Vaccination> vaccinations = new HashSet<>();
 
-    @ManyToMany
-    private List<CareEvent> careEvents = new ArrayList<>();
+    @ManyToMany(mappedBy = "animals")
+    private Set<CareEvent> careEvents = new HashSet<>();
 
     @ManyToMany(mappedBy = "watchedAnimals")
-    private List<User> usersWatching = new ArrayList<>();
+    private Set<User> usersWatching = new HashSet<>();
 
     @PrePersist
     @PreUpdate
@@ -93,4 +100,17 @@ public class Animal {
         }
     }
 
+    @PreRemove
+    private void cleanUpRelationships() {
+        for (User user : usersWatching) {
+            user.getWatchedAnimals().remove(this);
+        }
+
+    }
+
+    public Animal(AnimalType type, SexType sex, String name) {
+        this.type = type;
+        this.sex = sex;
+        this.name = name;
+    }
 }

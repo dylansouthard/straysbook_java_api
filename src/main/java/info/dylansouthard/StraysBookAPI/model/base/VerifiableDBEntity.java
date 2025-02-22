@@ -1,26 +1,37 @@
 package info.dylansouthard.StraysBookAPI.model.base;
 
-import info.dylansouthard.StraysBookAPI.model.shared.VerificationStatus;
-import jakarta.persistence.Embedded;
+import info.dylansouthard.StraysBookAPI.model.enums.VerificationStatusType;
+import info.dylansouthard.StraysBookAPI.model.user.User;
+import jakarta.persistence.Column;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
 @MappedSuperclass
-public class VerifiableDBEntity extends UserRegisteredDBEntity {
-    @Embedded
-    private VerificationStatus verificationStatus;
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public abstract class VerifiableDBEntity extends UserRegisteredDBEntity {
+    @Column
+    private VerificationStatusType verificationStatus = VerificationStatusType.UNVERIFIED;
 
+    @Column
+    private String verificationProofUrl;
 
-    @PrePersist
-    @PreUpdate
-    private void initializeVerificationStatus() {
-        if (verificationStatus == null) {
-            verificationStatus = new VerificationStatus();
-        }
+    @ManyToOne
+    private User verifiedBy;
+
+    public void verify(User verifiedBy) {
+        this.verifiedBy = verifiedBy;
+        this.verificationStatus = VerificationStatusType.VERIFIED;
+    }
+
+    public VerifiableDBEntity(User createdBy) {
+        super(createdBy);
+
     }
 }
