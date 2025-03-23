@@ -1,9 +1,11 @@
 package info.dylansouthard.StraysBookAPI.model.user;
 
-import info.dylansouthard.StraysBookAPI.exception.DuplicateOAuthProviderException;
-import info.dylansouthard.StraysBookAPI.model.Animal;
+import info.dylansouthard.StraysBookAPI.errors.DuplicateOAuthProviderException;
 import info.dylansouthard.StraysBookAPI.model.CareEvent;
+import info.dylansouthard.StraysBookAPI.model.FeedItem;
 import info.dylansouthard.StraysBookAPI.model.base.DBEntity;
+import info.dylansouthard.StraysBookAPI.model.friendo.Animal;
+import info.dylansouthard.StraysBookAPI.model.friendo.Litter;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,7 +19,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter @Setter
-@EqualsAndHashCode(callSuper = true, exclude = {"watchedAnimals", "careEvents"})
+@EqualsAndHashCode(callSuper = true, exclude = {"watchedAnimals", "careEvents", "watchedLitters"})
 public class User extends DBEntity {
 
     @Column(nullable = false)
@@ -47,6 +49,14 @@ public class User extends DBEntity {
     private Set<Animal> watchedAnimals = new HashSet<>();
 
     @ManyToMany
+    @JoinTable(
+            name = "watched_litters", // Name of the join table
+            joinColumns = @JoinColumn(name = "user_id"), // Foreign key for User
+            inverseJoinColumns = @JoinColumn(name = "litter_id") // Foreign key for Animal
+    )
+    private Set<Litter> watchedLitters = new HashSet<>();
+
+    @OneToMany(mappedBy = "registeredBy")
     private Set<CareEvent> careEvents = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -55,8 +65,8 @@ public class User extends DBEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<AuthToken> authTokens = new HashSet<>();
 
-//    @ManyToMany(fetch=FetchType.LAZY)
-//    private Set<Litter> watchedLitters = new HashSet<>();
+    @OneToMany(mappedBy="registeredBy")
+    private Set<FeedItem> associatedFeedItems = new HashSet<>();
 
     public void addOAuthProvider(OAuthProvider provider) {
         if (this.oAuthProviders.stream().anyMatch(p->p.getProvider().equals(provider.getProvider()))){
@@ -82,18 +92,51 @@ public class User extends DBEntity {
         for (Animal animal : this.watchedAnimals) {
             animal.getUsersWatching().remove(this);
         }
+
+        for (CareEvent careEvent : this.careEvents) {
+            careEvent.setRegisteredBy(null);
+        }
+
+        for (FeedItem feedItem : this.associatedFeedItems) {
+            feedItem.setRegisteredBy(null);
+        }
+
+        for (Litter litter : this.watchedLitters) {
+            litter.getUsersWatching().remove(this);
+        }
     }
 
     public void addWatchedAnimal(Animal animal) {
         this.watchedAnimals.add(animal);
         if (!animal.getUsersWatching().contains(this)) {
-            animal.getUsersWatching().add(this); // ✅ Ensure both sides are in sync
+            animal.getUsersWatching().add(this);
         }
     }
 
     public void removeWatchedAnimal(Animal animal) {
-        this.watchedAnimals.remove(animal);
-        animal.getUsersWatching().remove(this);
+        this.watchedAnimals.removeIf(a -> a.getId().equals(animal.getId()));
+        animal.getUsersWatching().removeIf(u -> u.getId().equals(this.getId()));
+
+    }
+
+    public void addWatchedLitter(Litter litter) {
+        this.watchedLitters.add(litter);
+        if (!litter.getUsersWatching().contains(this)) {
+            litter.getUsersWatching().add(this);
+        }
+
+        for (Animal animal : litter.getAnimals()) {
+            addWatchedAnimal(animal);
+        }
+    }
+
+    public void removeWatchedLitter(Litter litter) {
+        this.watchedLitters.removeIf(l -> l.getId().equals(litter.getId()));
+        litter.getUsersWatching().removeIf(u -> u.getId().equals(this.getId()));
+
+        for (Animal animal : litter.getAnimals()) {
+            removeWatchedAnimal(animal);
+        }
     }
 
     public User(String displayName, String email) {

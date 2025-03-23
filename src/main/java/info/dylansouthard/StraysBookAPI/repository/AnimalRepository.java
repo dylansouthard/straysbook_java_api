@@ -1,6 +1,7 @@
 package info.dylansouthard.StraysBookAPI.repository;
 
-import info.dylansouthard.StraysBookAPI.model.Animal;
+import info.dylansouthard.StraysBookAPI.model.enums.SexType;
+import info.dylansouthard.StraysBookAPI.model.friendo.Animal;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,26 +11,17 @@ import java.util.Optional;
 
 public interface AnimalRepository extends JpaRepository<Animal, Long> {
 
-//    @Query(value = """
-//    SELECT a
-//    FROM Animal a
-//    WHERE ST_DWithin(
-//        a.location.location,
-//        ST_MakePoint(:longitude, :latitude),
-//        :radius
-//    ) = true
-//    """)
-//    public List<Animal> findAllInArea(@Param("latitude") double latitude,
-//                                      @Param("longitude") double longitude,
-//                                      @Param("radius") double radius);
 
     @Query(value = """
-    SELECT a
-    FROM Animal a
-    WHERE a.location.location IS NOT NULL
-    """)
-    List<Animal> findWithLocation();
+SELECT * from animals
+WHERE ST_DWithin(location, ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326), :radius)
+""", nativeQuery = true)
+    public List<Animal> findByLocation(@Param("latitude") double latitude, @Param("longitude") double longitude, @Param("radius") double radius);
+
+
 
     @Query("SELECT a from Animal a WHERE a.id = :id AND a.shouldAppear = true")
     Optional<Animal> findByActiveId(@Param("id") long id);
+
+    String Sex(SexType sex);
 }

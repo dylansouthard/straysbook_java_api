@@ -1,6 +1,9 @@
-package info.dylansouthard.StraysBookAPI.model;
+package info.dylansouthard.StraysBookAPI.model.friendo;
 
-import info.dylansouthard.StraysBookAPI.model.base.UserRegisteredDBEntity;
+import info.dylansouthard.StraysBookAPI.model.CareEvent;
+import info.dylansouthard.StraysBookAPI.model.FeedItem;
+import info.dylansouthard.StraysBookAPI.model.SterilizationStatus;
+import info.dylansouthard.StraysBookAPI.model.Vaccination;
 import info.dylansouthard.StraysBookAPI.model.enums.AnimalType;
 import info.dylansouthard.StraysBookAPI.model.enums.ConditionType;
 import info.dylansouthard.StraysBookAPI.model.enums.SexType;
@@ -22,35 +25,19 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter @Setter
-@EqualsAndHashCode(callSuper = true, exclude = {"usersWatching", "careEvents"})
-public class Animal extends UserRegisteredDBEntity {
-
-    @Column(name="animal_type",nullable = false)
-    @Enumerated(EnumType.STRING)
-    private AnimalType type;
+@EqualsAndHashCode(callSuper = true, exclude = {"usersWatching", "careEvents", "conditions", "litter"})
+public class Animal extends Friendo {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private SexType sex = SexType.UNKNOWN;
 
-    @Column(nullable = false)
-
-    private String name;
-
-    @Column
-    private String description;
-
-    @Column
-    private LocalDate born;
-
-    @Column
-    private Boolean dangerous;
-
     @Column
     private Boolean hasCollar;
 
+
     @Column
-    private String imgUrl;
+    private LocalDate born;
 
     @Column
     private Boolean shouldAppear = true;
@@ -68,10 +55,10 @@ public class Animal extends UserRegisteredDBEntity {
     private Boolean criticalCondition;
 
     @Column
-    private int conditionRating;
+    private Integer conditionRating;
 
-    @Embedded
-    private GeoSchema location;
+    @Column
+    private String conditionNotes;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -92,6 +79,13 @@ public class Animal extends UserRegisteredDBEntity {
     @ManyToMany(mappedBy = "watchedAnimals")
     private Set<User> usersWatching = new HashSet<>();
 
+    @ManyToOne
+    @JoinColumn(name="litter_id")
+    private Litter litter;
+
+    @ManyToMany(mappedBy="animals")
+    private Set<FeedItem> associatedFeedItems = new HashSet<>();
+
     @PrePersist
     @PreUpdate
     private void initializeSterilizationStatus() {
@@ -106,11 +100,30 @@ public class Animal extends UserRegisteredDBEntity {
             user.getWatchedAnimals().remove(this);
         }
 
+        for (CareEvent careEvent : careEvents) {
+            careEvent.getAnimals().remove(this);
+        }
+
+        for (FeedItem feedItem : associatedFeedItems) {
+            feedItem.getAnimals().remove(this);
+        }
+
+        if (litter != null) {
+            litter.getAnimals().remove(this);
+        }
     }
 
     public Animal(AnimalType type, SexType sex, String name) {
-        this.type = type;
+        super(type, name);
         this.sex = sex;
-        this.name = name;
+    }
+
+    public Animal (AnimalType type, SexType sex, String name, GeoSchema location) {
+        super(type, name, location);
+        this.sex = sex;
+    }
+
+    public Animal(AnimalType type, String name) {
+        super(type, name);
     }
 }

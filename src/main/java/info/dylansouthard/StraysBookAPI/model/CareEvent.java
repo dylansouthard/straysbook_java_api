@@ -2,6 +2,8 @@ package info.dylansouthard.StraysBookAPI.model;
 
 import info.dylansouthard.StraysBookAPI.model.base.UserRegisteredDBEntity;
 import info.dylansouthard.StraysBookAPI.model.enums.CareEventType;
+import info.dylansouthard.StraysBookAPI.model.friendo.Animal;
+import info.dylansouthard.StraysBookAPI.model.friendo.Litter;
 import info.dylansouthard.StraysBookAPI.model.user.User;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
@@ -10,7 +12,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -34,6 +38,7 @@ public class CareEvent extends UserRegisteredDBEntity {
     @Column(nullable = false)
     private LocalDateTime date;
 
+
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "care_event_animals", // Name of the join table
@@ -42,11 +47,44 @@ public class CareEvent extends UserRegisteredDBEntity {
     )
     private Set<Animal> animals = new HashSet<>();
 
+    @ManyToOne
+    @JoinColumn(name="litter_id")
+    private Litter litter;
+
+
+    @OneToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "care_event_id")
+    private FeedItem feedItem;
+
+
+    public void createFeedItem() {
+        this.feedItem = new FeedItem(new ArrayList<>(animals), this, this.registeredBy);
+        System.out.println("feed item type is " + this.feedItem.getType());
+    }
+
     public CareEvent(CareEventType type, LocalDateTime date, User registeredBy) {
         super(registeredBy);
         this.type = type;
         this.date = date;
         registeredBy.getCareEvents().add(this);
+        createFeedItem();
+    }
+
+    public CareEvent(CareEventType type, User registeredBy) {
+        super(registeredBy);
+        this.type = type;
+        this.date = LocalDateTime.now();
+        registeredBy.getCareEvents().add(this);
+        createFeedItem();
+    }
+
+    public CareEvent(CareEventType type, User registeredBy, List<Animal> animals) {
+        super(registeredBy);
+        this.type = type;
+        for (Animal animal : animals) {
+            animal.getCareEvents().add(this);
+        }
+        createFeedItem();
     }
 
     public void addAnimal(Animal animal) {
@@ -54,14 +92,29 @@ public class CareEvent extends UserRegisteredDBEntity {
         animal.getCareEvents().add(this);
     }
 
+    public void addLitter(Litter litter) {
+        this.litter = litter;
+        for (Animal animal : litter.getAnimals()) {
+            this.addAnimal(animal);
+        }
+    }
+
     @PreRemove
     public void removeCareEventAssociations() {
         for (Animal animal : animals) {
             animal.getCareEvents().remove(this);
         }
+
+        if (litter != null) {
+            litter.getCareEvents().remove(this);
+        }
+
+        if (feedItem != null) {
+            feedItem.setCareEvent(null);
+        }
     }
 
 
 
-    //ADD litter related litter
+
 }

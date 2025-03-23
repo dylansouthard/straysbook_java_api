@@ -16,8 +16,8 @@ import org.locationtech.jts.geom.Point;
 @Embeddable
 public class GeoSchema {
 
-//    @Column(columnDefinition = "geometry(Point,4326)")
-@Column(columnDefinition = "GEOMETRY")
+
+@Column(columnDefinition = "GEOMETRY(Point, 4326)")
     private Point location;
 
     public GeoSchema(double latitude, double longitude) {

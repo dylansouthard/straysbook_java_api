@@ -1,11 +1,12 @@
 package info.dylansouthard.StraysBookAPI.repository;
 
-import info.dylansouthard.StraysBookAPI.exception.DuplicateOAuthProviderException;
-import info.dylansouthard.StraysBookAPI.model.Animal;
+import info.dylansouthard.StraysBookAPI.errors.DuplicateOAuthProviderException;
 import info.dylansouthard.StraysBookAPI.model.enums.AnimalType;
 import info.dylansouthard.StraysBookAPI.model.enums.AuthTokenType;
 import info.dylansouthard.StraysBookAPI.model.enums.OAuthProviderType;
 import info.dylansouthard.StraysBookAPI.model.enums.SexType;
+import info.dylansouthard.StraysBookAPI.model.friendo.Animal;
+import info.dylansouthard.StraysBookAPI.model.friendo.Litter;
 import info.dylansouthard.StraysBookAPI.model.user.AuthToken;
 import info.dylansouthard.StraysBookAPI.model.user.OAuthProvider;
 import info.dylansouthard.StraysBookAPI.model.user.User;
@@ -18,7 +19,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-public class UserRepositoryTests extends RepositoryTestContainer {
+public class UserRepositoryIT extends RepositoryIT {
 
 
 
@@ -57,6 +58,8 @@ public class UserRepositoryTests extends RepositoryTestContainer {
         Optional<User> user = userRepository.findActiveById(999L);
         assertTrue(user.isEmpty());
     }
+
+
 
     //Update
     @Test
@@ -244,9 +247,15 @@ public class UserRepositoryTests extends RepositoryTestContainer {
         animalRepository.saveAndFlush(animal);
     }
 
+    private void addLitterToUser(Litter litter, User user) {
+        user.addWatchedLitter(litter);
+        userRepository.saveAndFlush(user);
+        litterRepository.saveAndFlush(litter);
+    }
+
     @Test
     @Transactional
-    public void When_UpdatingWatchlist_Expect_WatchlistUpdatedSuccessfully() {
+    public void When_UpdatingAnimalWatchlist_Expect_WatchlistUpdatedSuccessfully() {
 
 
         // Arrange - Save user and animal
@@ -286,6 +295,68 @@ public class UserRepositoryTests extends RepositoryTestContainer {
 
         assertEquals(0, replacementAnimal.getUsersWatching().size(), "User should be removed from animal list");
     }
+
+    @Test
+    @Transactional
+    public void When_UpdatingLitterWatchlist_Expect_WatchlistUpdatedSuccessfully() {
+
+
+        // Arrange - Save user and litter
+        User user = userRepository.save(validUser);
+        Litter litter = litterRepository.saveAndFlush(constructValidLitter());
+
+        Animal animal = litter.getAnimals().stream().findFirst().get();
+        addAnimalToUser(animal, user);
+        // Act - Add litter to user's watchlist
+        addLitterToUser(litter, user);
+
+        // Assert - Litter and animals should be in watchlist
+        assertAll("Litter watchlist adds",
+                ()-> assertEquals(1, user.getWatchedLitters().size(), "Litter should be added to user list"),
+                ()->assertEquals(2, user.getWatchedAnimals().size(), "All unique animals in litter should be added to user list")
+        );
+        assertEquals(1, user.getWatchedLitters().size(), "Litter should be added to user list");
+        Litter fetchedLitter = litterRepository.findById(litter.getId()).orElseThrow();
+        assertEquals(1, fetchedLitter.getUsersWatching().size(), "Litter should be watched by user");
+
+        // Act - Remove litter from watchlist
+        user.removeWatchedLitter(litter);
+        userRepository.saveAndFlush(user);
+        litterRepository.saveAndFlush(litter);
+
+        // Assert - Litter should no longer be in watchlist
+        assertEquals(0, user.getWatchedLitters().size(), "Litter should be removed from user list");
+        fetchedLitter = litterRepository.findById(litter.getId()).orElseThrow();
+        assertEquals(0, fetchedLitter.getUsersWatching().size(), "Litter should no longer be watched by user");
+
+        // Act - Add litter to user's watchlist
+        user.addWatchedLitter(litter);
+        userRepository.saveAndFlush(user);
+        litterRepository.saveAndFlush(litter);
+        litterRepository.deleteById(litter.getId());
+
+        assertAll(
+                "Litter watchlist deletions",
+                ()-> assertEquals(0, user.getWatchedLitters().size(), "Litter should be removed from user list"),
+                ()-> assertEquals(2, user.getWatchedAnimals().size(), "Animals should not be removed from user list")
+                );
+
+    }
+
+    @Test
+    @Transactional
+    public void When_UserDeleted_Expect_UserRemovedFromLitterUsersWatching() {
+        User user = userRepository.save(validUser);
+        Litter litter = litterRepository.save(constructValidLitter());
+        addLitterToUser(litter, user);
+
+        userRepository.deleteById(user.getId());
+
+        Litter retreivedLitter = litterRepository.findById(litter.getId()).orElseThrow();
+
+        assertEquals(0, retreivedLitter.getUsersWatching().size(), "User should be removed from user list");
+    }
+
 
 
 

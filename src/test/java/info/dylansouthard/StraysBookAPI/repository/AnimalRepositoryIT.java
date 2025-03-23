@@ -1,23 +1,29 @@
 package info.dylansouthard.StraysBookAPI.repository;
 
-import info.dylansouthard.StraysBookAPI.model.Animal;
 import info.dylansouthard.StraysBookAPI.model.SterilizationStatus;
 import info.dylansouthard.StraysBookAPI.model.Vaccination;
+import info.dylansouthard.StraysBookAPI.model.enums.AnimalType;
+import info.dylansouthard.StraysBookAPI.model.enums.SexType;
 import info.dylansouthard.StraysBookAPI.model.enums.VaccinationType;
 import info.dylansouthard.StraysBookAPI.model.enums.VerificationStatusType;
+import info.dylansouthard.StraysBookAPI.model.friendo.Animal;
+import info.dylansouthard.StraysBookAPI.model.shared.GeoSchema;
 import info.dylansouthard.StraysBookAPI.model.user.User;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class AnimalRepositoryTests extends RepositoryTestContainer{
+public class AnimalRepositoryIT extends RepositoryIT {
 
 
     @Test
+    @Transactional
     void whenSavingAnimal_Expect_AnimalIsRetrievable() {
         // Save it
         Animal savedAnimal = animalRepository.save(validAnimal);
@@ -50,6 +56,13 @@ public class AnimalRepositoryTests extends RepositoryTestContainer{
         Animal savedAnimal = animalRepository.save(validAnimal);
         Optional<Animal> animal = animalRepository.findByActiveId(savedAnimal.getId());
         assertTrue(animal.isEmpty());
+    }
+
+    @Test
+    public void When_FindingAnimalsInArea_Expect_AnimalFoundSuccessfully() {
+        Animal _ = animalRepository.save(new Animal(AnimalType.CAT, SexType.FEMALE, "アメリ", new GeoSchema(34.7376, 135.3415)));
+        List<Animal> foundAnimals = animalRepository.findByLocation(34.7385, 135.3415, 1000);
+        assertEquals(1, foundAnimals.size(), "Animal in area should be found");
     }
 
     //UPDATE

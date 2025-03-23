@@ -2,6 +2,7 @@ package info.dylansouthard.StraysBookAPI.model.base;
 
 import info.dylansouthard.StraysBookAPI.model.user.User;
 import jakarta.persistence.Column;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
 import lombok.EqualsAndHashCode;
@@ -21,6 +22,8 @@ public abstract class UserRegisteredDBEntity extends DBEntity {
     protected String notes;
 
     @ManyToOne
+    @JoinColumn(name="user_id")
+
     protected User registeredBy;
 
     public UserRegisteredDBEntity(User registeredBy) {
