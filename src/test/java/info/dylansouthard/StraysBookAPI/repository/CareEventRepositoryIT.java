@@ -10,6 +10,7 @@ import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -104,5 +105,27 @@ public class CareEventRepositoryIT extends RepositoryIT {
         Optional<FeedItem> foundFeedItem = feedItemRepository.findById(careEvent.getFeedItem().getId());
 
         assertTrue(foundFeedItem.isPresent(), "FeedItem should exist");
+    }
+
+
+    @Test
+    @Transactional
+    public void When_FetchingCareEventsForAnimalByDate_Expect_CareEventsFetched() {
+        User user = userRepository.saveAndFlush(validUser);
+        Animal animal = animalRepository.saveAndFlush(validAnimal);
+        CareEvent careEventOne = addAnimalAndSave(new CareEvent(CareEventType.FED, LocalDateTime.now(), user), animal);
+        CareEvent careEventTwo = addAnimalAndSave(new CareEvent(CareEventType.VET, LocalDateTime.now().minusDays(29), user), animal);
+        CareEvent careEventThree = addAnimalAndSave(new CareEvent(CareEventType.VACCINATED, LocalDateTime.now().minusDays(31), user), animal);
+        CareEvent careEventFour = careEventRepository.saveAndFlush(new CareEvent(CareEventType.PLAYED, LocalDateTime.now(), user));
+
+        List<CareEvent> fetchedCareEvents = careEventRepository.findRecentCareEventsByAnimalId(animal.getId(), LocalDateTime.now().minusDays(30));
+
+        assertAll("Fetched Care Events",
+                () -> assertTrue(fetchedCareEvents.contains(careEventOne), "Should include careEventOne (now)"),
+                () -> assertTrue(fetchedCareEvents.contains(careEventTwo), "Should include careEventTwo (29 days ago)"),
+                () -> assertFalse(fetchedCareEvents.contains(careEventThree), "Should NOT include careEventThree (31 days ago)"),
+                () -> assertFalse(fetchedCareEvents.contains(careEventFour), "Should NOT include careEventFour (not linked to animal)"),
+                () -> assertEquals(2, fetchedCareEvents.size(), "Should fetch exactly 2 care events")
+        );
     }
 }

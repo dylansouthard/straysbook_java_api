@@ -65,6 +65,19 @@ public class AnimalRepositoryIT extends RepositoryIT {
         assertEquals(1, foundAnimals.size(), "Animal in area should be found");
     }
 
+    @Test
+    @Transactional
+    public void When_FindingAnimalsOutOfArea_Expect_ZeroResults() {
+        // Given: Save an animal far away from the search area
+        Animal farAnimal = new Animal(AnimalType.DOG, SexType.MALE, "FarBoi", new GeoSchema(36.0000, 137.0000));
+        animalRepository.save(farAnimal);
+
+        // When: Search in a different area (1000m radius around Kyoto-ish)
+        List<Animal> foundAnimals = animalRepository.findByLocation(34.7385, 135.3415, 1000);
+
+        // Then: Should return empty
+        assertEquals(0, foundAnimals.size(), "No animals should be found outside the search radius");
+    }
     //UPDATE
     @Test
     public void When_UpdatingAnimal_Expect_AnimalUpdatedSuccessfully() {
@@ -127,6 +140,8 @@ public class AnimalRepositoryIT extends RepositoryIT {
        assertTrue(deletedSS.isEmpty(), "Sterilization status should not be found in DB");
     }
 
+    @Test
+    @Transactional
     public void When_UpdatingVaccinationStatus_Expect_VaccinationStatusUpdatedSuccessfully() {
         User savedUser = userRepository.save(validUser);
         Vaccination vaccination = new Vaccination(VaccinationType.CCV, savedUser);

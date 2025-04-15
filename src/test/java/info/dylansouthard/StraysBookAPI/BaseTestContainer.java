@@ -1,8 +1,13 @@
 package info.dylansouthard.StraysBookAPI;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import info.dylansouthard.StraysBookAPI.model.shared.GeoSchema;
+import info.dylansouthard.StraysBookAPI.serializers.GeoSchemaSerializer;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -38,6 +43,14 @@ public abstract class BaseTestContainer {
         postgres.start();
     }
 
+    @BeforeEach
+    public void registerGeoSchema() {
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule();
+        module.addSerializer(GeoSchema.class, new GeoSchemaSerializer());
+        mapper.registerModule(module);
+    }
+
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -55,4 +68,7 @@ public abstract class BaseTestContainer {
         assertTrue(activeProfiles.length > 0 && activeProfiles[0].equals("test"),
                 "Active profile should be 'test'");
     }
+
+
+
 }

@@ -1,6 +1,6 @@
 package info.dylansouthard.StraysBookAPI.repository;
 
-import info.dylansouthard.StraysBookAPI.BaseTestContainer;
+import info.dylansouthard.StraysBookAPI.BaseDBTest;
 import info.dylansouthard.StraysBookAPI.model.FeedItem;
 import info.dylansouthard.StraysBookAPI.model.enums.AnimalType;
 import info.dylansouthard.StraysBookAPI.model.enums.FeedItemType;
@@ -8,41 +8,13 @@ import info.dylansouthard.StraysBookAPI.model.enums.SexType;
 import info.dylansouthard.StraysBookAPI.model.friendo.Animal;
 import info.dylansouthard.StraysBookAPI.model.friendo.Litter;
 import info.dylansouthard.StraysBookAPI.model.user.User;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-public class RepositoryIT extends BaseTestContainer {
+public class RepositoryIT extends BaseDBTest {
 
-    @PersistenceContext
-    protected EntityManager entityManager;
 
-    @Autowired
-    protected AnimalRepository animalRepository;
-
-    @Autowired
-    protected AuthTokenRepository authTokenRepository;
-
-    @Autowired
-    protected CareEventRepository careEventRepository;
-
-    @Autowired
-    protected FeedItemRepository feedItemRepository;
-
-    @Autowired
-    protected LitterRepository litterRepository;
-
-    @Autowired
-    protected SterilizationStatusRepository sterilizationStatusRepository;
-
-    @Autowired
-    protected UserRepository userRepository;
-
-    @Autowired
-    protected VaccinationRepository vaccinationRepository;
 
     //MOCK ENTITIES
     protected Animal validAnimal;

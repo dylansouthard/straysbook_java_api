@@ -13,10 +13,13 @@ public interface AnimalRepository extends JpaRepository<Animal, Long> {
 
 
     @Query(value = """
-SELECT * from animals
-WHERE ST_DWithin(location, ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326), :radius)
+SELECT * FROM animals
+WHERE ST_DWithin(location::geography, ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography, :radius)
 """, nativeQuery = true)
-    public List<Animal> findByLocation(@Param("latitude") double latitude, @Param("longitude") double longitude, @Param("radius") double radius);
+    public List<Animal> findByLocation(
+            @Param("latitude") double latitude,
+            @Param("longitude") double longitude,
+            @Param("radius") double radius);
 
 
 

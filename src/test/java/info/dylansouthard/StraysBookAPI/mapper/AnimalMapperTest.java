@@ -2,11 +2,7 @@ package info.dylansouthard.StraysBookAPI.mapper;
 
 import info.dylansouthard.StraysBookAPI.config.DummyTestData;
 import info.dylansouthard.StraysBookAPI.dto.ConditionDTO;
-import info.dylansouthard.StraysBookAPI.dto.friendo.AnimalDTO;
-import info.dylansouthard.StraysBookAPI.dto.friendo.AnimalSummaryDTO;
-import info.dylansouthard.StraysBookAPI.dto.friendo.AnimalSummaryMinDTO;
-import info.dylansouthard.StraysBookAPI.dto.friendo.CreateAnimalDTO;
-import info.dylansouthard.StraysBookAPI.dto.user.UserSummaryMinDTO;
+import info.dylansouthard.StraysBookAPI.dto.friendo.*;
 import info.dylansouthard.StraysBookAPI.dto.vaccination.VaccinationSummaryDTO;
 import info.dylansouthard.StraysBookAPI.model.Vaccination;
 import info.dylansouthard.StraysBookAPI.model.enums.*;
@@ -125,8 +121,6 @@ public class AnimalMapperTest {
         dto.setType(AnimalType.CAT);
         dto.setSex(SexType.FEMALE);
 
-        UserSummaryMinDTO userDTO = new UserSummaryMinDTO(1L, "Joe Schmo");
-        dto.setRegisteredBy(userDTO);
 
         ConditionDTO condition = new ConditionDTO();
         condition.setTypes(List.of(ConditionType.HEALTHY));
@@ -154,4 +148,6 @@ public class AnimalMapperTest {
         assertEquals("Healthy and happy cat.", animal.getConditionNotes(), "Condition notes should match DTO notes");
 
     }
+
+
 }

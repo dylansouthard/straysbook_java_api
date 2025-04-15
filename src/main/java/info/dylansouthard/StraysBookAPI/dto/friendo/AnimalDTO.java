@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +36,16 @@ public class AnimalDTO extends FriendoDTO {
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private boolean hasCollar = false;
+
+    @Schema(
+            description = "Birthdate of the animal",
+            example = "2021-01-01",
+            type = "string",
+            format = "date",
+            nullable = true,
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED
+    )
+    private LocalDate born;
 
     @Schema(
             description = "Is the animal sterilized?",
@@ -84,7 +95,4 @@ public class AnimalDTO extends FriendoDTO {
             )
     )
     private List<CareEventSummaryDTO> recentCareEvents = new ArrayList<>();
-
-
 }
-

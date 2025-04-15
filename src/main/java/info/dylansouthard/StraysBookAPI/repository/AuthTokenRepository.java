@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface AuthTokenRepository extends JpaRepository<AuthToken, Long> {
     @Query("DELETE FROM AuthToken t WHERE t.expiresAt < :now")
@@ -19,5 +20,9 @@ public interface AuthTokenRepository extends JpaRepository<AuthToken, Long> {
 
     @Query("SELECT t FROM AuthToken t WHERE t.user.id = :userId AND t.type = :type")
     List<AuthToken> findTokensByType(@Param("userId") Long userId, @Param("type") AuthTokenType type);
+
+    Optional<AuthToken> findByTokenAndDeviceId(String token, String deviceId);
+
+    List<AuthToken> findByUserId(Long userId);
 
 }

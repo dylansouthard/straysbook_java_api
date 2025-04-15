@@ -1,4 +1,4 @@
-package info.dylansouthard.StraysBookAPI.errors;
+package info.dylansouthard.StraysBookAPI.errors.exceptions;
 
 public class DuplicateOAuthProviderException extends RuntimeException {
     public DuplicateOAuthProviderException(String message) {

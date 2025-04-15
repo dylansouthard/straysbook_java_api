@@ -1,6 +1,6 @@
 package info.dylansouthard.StraysBookAPI.repository;
 
-import info.dylansouthard.StraysBookAPI.errors.DuplicateOAuthProviderException;
+import info.dylansouthard.StraysBookAPI.errors.exceptions.DuplicateOAuthProviderException;
 import info.dylansouthard.StraysBookAPI.model.enums.AnimalType;
 import info.dylansouthard.StraysBookAPI.model.enums.AuthTokenType;
 import info.dylansouthard.StraysBookAPI.model.enums.OAuthProviderType;

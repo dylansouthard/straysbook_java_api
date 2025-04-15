@@ -1,7 +1,6 @@
 package info.dylansouthard.StraysBookAPI.dto.careEvent;
 
 import info.dylansouthard.StraysBookAPI.dto.friendo.AnimalSummaryDTO;
-import info.dylansouthard.StraysBookAPI.dto.user.UserSummaryMinDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -32,13 +31,6 @@ public class CareEventDTO extends CareEventSummaryDTO {
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private Set<AnimalSummaryDTO> animals = new HashSet<>();
-
-    @Schema(
-            description = "User who registered the care event",
-            nullable = false,
-            requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    private UserSummaryMinDTO registeredBy;
 
     @Schema(
             description = "Optional notes or comments about the Care Event",

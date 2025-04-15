@@ -1,5 +1,6 @@
 package info.dylansouthard.StraysBookAPI.dto.careEvent;
 
+import info.dylansouthard.StraysBookAPI.dto.user.UserSummaryMinDTO;
 import info.dylansouthard.StraysBookAPI.model.enums.CareEventType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -56,4 +57,11 @@ public class CareEventSummaryDTO {
             requiredMode = Schema.RequiredMode.NOT_REQUIRED
     )
     private String notes;
+
+    @Schema(
+            description = "User who registered the care event",
+            nullable = true,
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private UserSummaryMinDTO registeredBy;
 }

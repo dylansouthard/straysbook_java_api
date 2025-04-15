@@ -46,4 +46,13 @@ public class AuthToken {
         this.expiresAt = expiresAt;
         this.deviceId = deviceId;
     }
+
+    public AuthToken(AuthTokenType type, String token, LocalDateTime issuedAt, LocalDateTime expiresAt, User user, String deviceId) {
+        this.type = type;
+        this.token = token;
+        this.issuedAt = issuedAt;
+        this.expiresAt = expiresAt;
+        this.user = user;
+        this.deviceId = deviceId;
+    }
 }

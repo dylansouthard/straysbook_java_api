@@ -18,7 +18,14 @@
       "en": "Unauthorized. Please log in and try again.",
       "th": "ไม่ได้รับอนุมัติ โปรดเข้าสู่ระบบและลองใหม่อีกครั้ง"
     },
-    "status": 400
+    "status": 401
+  },
+  "AUTH_FORBIDDEN": {
+    "message": {
+      "en": "This request shall not pass! You are not authorized to perform this action.",
+      "th": "คุณไม่มีสิทธิ์ดำเนินการนี้"
+    },
+    "status": 403
   },
   "CARE_EVENTS_NOT_FOUND": {
     "message": {
@@ -32,7 +39,7 @@
       "en": "The item could not be deleted.",
       "th": "ไม่สามารถลบรายการได้"
     },
-    "status": 404
+    "status": 500
   },
   "DELETE_VERIFIED_STERILIZATION_EVENT": {
     "message": {
@@ -69,6 +76,14 @@
     },
     "status": 500
   },
+
+  "INTERNAL_SERVER_ERROR": {
+    "message": {
+      "en": "An unexpected error occurred.",
+      "th": "เกิดข้อผิดพลาดที่ไม่คาดคิด"
+    },
+    "status": 500
+  },
   "INVALID_COORDINATES": {
     "message": {
       "en": "Invalid Coordinates.",
@@ -87,6 +102,13 @@
     "message": {
       "en": "The query is missing the required parameters.",
       "th": "The query is missing the required parameters."
+    },
+    "status": 400
+  },
+  "INVALID_VERIFICATION": {
+    "message": {
+      "en": "Verification could not be completed. The item may have already been verified or may not currently require verification.",
+      "th": "ไม่สามารถเสร็จสิ้นกระบวนการยืนยัน อาจเป็นเพราะรายการนี้ได้รับการยืนยันแล้วหรือไม่อยู่ในขั้นตอนที่ต้องการการยืนยัน"
     },
     "status": 400
   },
@@ -131,12 +153,5 @@
       "th": "ไม่พบบัญชีผู้ใช่นี้"
     },
     "status": 404
-  },
-  "INVALID_VERIFICATION": {
-    "message": {
-      "en": "Verification could not be completed. The item may have already been verified or may not currently require verification.",
-      "th": "ไม่สามารถเสร็จสิ้นกระบวนการยืนยัน อาจเป็นเพราะรายการนี้ได้รับการยืนยันแล้วหรือไม่อยู่ในขั้นตอนที่ต้องการการยืนยัน"
-    },
-    "status": 400
   }
 }

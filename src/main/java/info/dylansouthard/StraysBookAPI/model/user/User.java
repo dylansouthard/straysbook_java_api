@@ -1,6 +1,6 @@
 package info.dylansouthard.StraysBookAPI.model.user;
 
-import info.dylansouthard.StraysBookAPI.errors.DuplicateOAuthProviderException;
+import info.dylansouthard.StraysBookAPI.errors.exceptions.DuplicateOAuthProviderException;
 import info.dylansouthard.StraysBookAPI.model.CareEvent;
 import info.dylansouthard.StraysBookAPI.model.FeedItem;
 import info.dylansouthard.StraysBookAPI.model.base.DBEntity;
@@ -8,11 +8,10 @@ import info.dylansouthard.StraysBookAPI.model.friendo.Animal;
 import info.dylansouthard.StraysBookAPI.model.friendo.Litter;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name="app_users")
@@ -142,5 +141,9 @@ public class User extends DBEntity {
     public User(String displayName, String email) {
         this.displayName = displayName;
         this.email = email;
+    }
+
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.emptyList(); // You can add real roles later
     }
 }

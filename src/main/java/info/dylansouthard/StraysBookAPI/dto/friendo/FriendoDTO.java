@@ -1,7 +1,10 @@
 package info.dylansouthard.StraysBookAPI.dto.friendo;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import info.dylansouthard.StraysBookAPI.dto.user.UserSummaryMinDTO;
 import info.dylansouthard.StraysBookAPI.model.shared.GeoSchema;
+import info.dylansouthard.StraysBookAPI.serializers.GeoSchemaSerializer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
@@ -65,5 +68,10 @@ public abstract class FriendoDTO extends FriendoSummaryDTO {
             requiredMode = Schema.RequiredMode.NOT_REQUIRED
     )
     private String notes;
+
+    @JsonSerialize(using = GeoSchemaSerializer.class)
+    public GeoSchema getLocation() {
+        return location;
+    }
 }
 

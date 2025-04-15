@@ -1,0 +1,17 @@
+{
+  "displayName": {
+    "nullable": false,
+    "testValue": "CoolUser42",
+    "testUpdateValue": "EvenCoolerUser99"
+  },
+  "email": {
+    "nullable": true,
+    "testValue": "cool@example.com",
+    "testUpdateValue": "cooler@example.com"
+  },
+  "intro": {
+    "nullable": true,
+    "testValue": "Just a friendly user.",
+    "testUpdateValue": "Now even friendlier."
+  }
+}

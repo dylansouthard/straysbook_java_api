@@ -1,0 +1,53 @@
+{
+  "name": {
+    "access": "RESTRICTED",
+    "testValue": "Amelie",
+    "testUpdateValue": "Sabi"
+  },
+  "description": {
+    "access": "CONDITIONAL",
+    "condition": "",
+    "testValue": "This dog has a big head",
+    "testUpdateValue": "This dog is majestic"
+  },
+  "dangerous": {
+    "access": "CONDITIONAL",
+    "condition": false,
+    "testValue": true,
+    "testUpdateValue": false
+  },
+  "imgUrl": {
+    "access": "CONDITIONAL",
+    "condition": null,
+    "testValue": "https://example.com/kittycat.jpg",
+    "testUpdateValue": "https://example.com/superdog.jpg"
+  },
+  "location": {
+    "access": "PUBLIC",
+    "testValue": {
+      "latitude": 34.7385,
+      "longitude": 135.3415
+    },
+    "testUpdateValue": {
+      "latitude": 34.7391,
+      "longitude": 135.3421
+    }
+  },
+  "sex": {
+    "access": "CONDITIONAL",
+    "condition": "UNKNOWN",
+    "testValue": "FEMALE",
+    "testUpdateValue": "MALE"
+  },
+  "hasCollar": {
+    "access": "PUBLIC",
+    "testValue": false,
+    "testUpdateValue": true
+  },
+  "born": {
+    "access": "CONDITIONAL",
+    "condition": null,
+    "testValue": "2021-01-01",
+    "testUpdateValue": "2020-01-01"
+  }
+}
