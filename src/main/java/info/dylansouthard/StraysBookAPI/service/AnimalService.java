@@ -15,8 +15,7 @@ import info.dylansouthard.StraysBookAPI.model.friendo.Animal;
 import info.dylansouthard.StraysBookAPI.model.user.User;
 import info.dylansouthard.StraysBookAPI.repository.AnimalRepository;
 import info.dylansouthard.StraysBookAPI.repository.UserRepository;
-import info.dylansouthard.StraysBookAPI.rules.enums.AccessLevel;
-import info.dylansouthard.StraysBookAPI.rules.update.UpdateRule;
+import info.dylansouthard.StraysBookAPI.rules.update.AnimalUpdateRule;
 import info.dylansouthard.StraysBookAPI.rules.update.UpdateRuleLoader;
 import info.dylansouthard.StraysBookAPI.util.updaters.AnimalUpdater;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +23,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static info.dylansouthard.StraysBookAPI.util.CareEventWeightUtil.weightCareEvent;
 
@@ -107,31 +109,27 @@ public class AnimalService {
         boolean canUpdateAsPrimaryCaretaker = canUpdateAsPrimaryCaretaker(user, primaryCaretaker);
 
         int numAuthorizedUpdates = 0;
+        int numValidUpdates = 0;
 
         try {
-            Map<String, UpdateRule> rules = UpdateRuleLoader.getAnimalRules();
+            Map<String, AnimalUpdateRule> rules = UpdateRuleLoader.getAnimalRules();
             for (Map.Entry<String, Object> entry : updates.entrySet()) {
                 String key = entry.getKey();
                 Object newValue = entry.getValue();
 
-                UpdateRule rule = rules.get(key);
-                if (rule == null) continue;
+                AnimalUpdateRule rule = rules.get(key);
+                if (rule == null || !rule.isValid(newValue)) continue;
+                numValidUpdates++;
 
                 Object currentValue = AnimalUpdater.getCurrentValue(animal, key);
 
-                AccessLevel accessLevel = rule.getAccess();
-
-                boolean canUpdate = accessLevel == AccessLevel.PUBLIC
-                        || canUpdateAsPrimaryCaretaker
-                        || (accessLevel == AccessLevel.CONDITIONAL
-                        && Objects.equals(String.valueOf(currentValue), String.valueOf(rule.getCondition())));
-
-                    if (canUpdate) {
-                        numAuthorizedUpdates++;
-                        AnimalUpdater.applyUpdate(animal, key, newValue);
-                    }
+                if (rule.hasUpdatePermission(canUpdateAsPrimaryCaretaker, currentValue)) {
+                    numAuthorizedUpdates++;
+                    AnimalUpdater.applyUpdate(animal, key, newValue);
+                }
             }
 
+            if (numValidUpdates == 0) throw ErrorFactory.invalidParams();
             if (numAuthorizedUpdates == 0) throw ErrorFactory.authForbidden();
            Animal updatedAnimal = animalRepository.save(animal);
             AnimalDTO animalDTO = animalMapper.toAnimalDTO(updatedAnimal);

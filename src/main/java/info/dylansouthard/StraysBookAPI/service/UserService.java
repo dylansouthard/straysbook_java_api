@@ -1,13 +1,20 @@
 package info.dylansouthard.StraysBookAPI.service;
 
+import info.dylansouthard.StraysBookAPI.dto.user.UpdateUserDTO;
 import info.dylansouthard.StraysBookAPI.dto.user.UserPrivateDTO;
 import info.dylansouthard.StraysBookAPI.dto.user.UserPublicDTO;
+import info.dylansouthard.StraysBookAPI.errors.AppException;
 import info.dylansouthard.StraysBookAPI.errors.ErrorFactory;
 import info.dylansouthard.StraysBookAPI.mapper.UserMapper;
 import info.dylansouthard.StraysBookAPI.model.user.User;
 import info.dylansouthard.StraysBookAPI.repository.UserRepository;
+import info.dylansouthard.StraysBookAPI.rules.update.UpdateRuleLoader;
+import info.dylansouthard.StraysBookAPI.rules.update.UserUpdateRule;
+import info.dylansouthard.StraysBookAPI.util.updaters.UserUpdater;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 @Service
 public class UserService {
@@ -28,5 +35,32 @@ public class UserService {
         return userMapper.toUserPrivateDTO(foundUser);
     }
 
+    public UserPrivateDTO updateUser(Long userId, UpdateUserDTO updateDTO) {
+        User user = userRepository.findActiveById(userId).orElseThrow(ErrorFactory::userNotFound);
 
+        Map<String, Object> updates = updateDTO.getUpdates();
+        int numValidUpdates = 0;
+        try {
+            Map<String, UserUpdateRule> rules = UpdateRuleLoader.getUserRules();
+            for (Map.Entry<String, Object> entry : updates.entrySet()) {
+                String key = entry.getKey();
+                Object newValue = entry.getValue();
+
+                UserUpdateRule rule = rules.get(key);
+                if (rule == null || !rule.isValid(newValue)) continue;
+                numValidUpdates++;
+
+                UserUpdater.applyUpdate(user, key, newValue);
+            }
+            if (numValidUpdates == 0) throw ErrorFactory.invalidParams();
+
+            User updatedUser = userRepository.save(user);
+            return userMapper.toUserPrivateDTO(updatedUser);
+
+        } catch (AppException e) {
+            throw e;
+        } catch (Exception e) {
+            throw ErrorFactory.internalServerError();
+        }
+    }
 }

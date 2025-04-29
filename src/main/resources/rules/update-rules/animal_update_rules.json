@@ -2,25 +2,33 @@
   "name": {
     "access": "RESTRICTED",
     "testValue": "Amelie",
-    "testUpdateValue": "Sabi"
+    "testUpdateValue": "Sabi",
+    "nullable": false,
+    "allowEmpty": false
   },
   "description": {
     "access": "CONDITIONAL",
     "condition": "",
     "testValue": "This dog has a big head",
-    "testUpdateValue": "This dog is majestic"
+    "testUpdateValue": "This dog is majestic",
+    "nullable": true,
+    "allowEmpty": true
   },
   "dangerous": {
     "access": "CONDITIONAL",
     "condition": false,
     "testValue": true,
-    "testUpdateValue": false
+    "testUpdateValue": false,
+    "nullable": true,
+    "allowEmpty": true
   },
   "imgUrl": {
     "access": "CONDITIONAL",
     "condition": null,
     "testValue": "https://example.com/kittycat.jpg",
-    "testUpdateValue": "https://example.com/superdog.jpg"
+    "testUpdateValue": "https://example.com/superdog.jpg",
+    "nullable": true,
+    "allowEmpty": true
   },
   "location": {
     "access": "PUBLIC",
@@ -31,23 +39,31 @@
     "testUpdateValue": {
       "latitude": 34.7391,
       "longitude": 135.3421
-    }
+    },
+    "nullable": false,
+    "allowEmpty": false
   },
   "sex": {
     "access": "CONDITIONAL",
     "condition": "UNKNOWN",
     "testValue": "FEMALE",
-    "testUpdateValue": "MALE"
+    "testUpdateValue": "MALE",
+    "nullable": false,
+    "allowEmpty": false
   },
   "hasCollar": {
     "access": "PUBLIC",
     "testValue": false,
-    "testUpdateValue": true
+    "testUpdateValue": true,
+    "nullable": true,
+    "allowEmpty": true
   },
   "born": {
     "access": "CONDITIONAL",
     "condition": null,
     "testValue": "2021-01-01",
-    "testUpdateValue": "2020-01-01"
+    "testUpdateValue": "2020-01-01",
+    "nullable": true,
+    "allowEmpty": true
   }
 }

@@ -188,6 +188,15 @@ public class AnimalServiceIT extends BaseDBTest {
 
         animalRepository.save(animal);
 
+        if (!testCase.isShouldSucceed() && testCase.getUpdates().size() < 2) {
+            ExceptionAssertionRunner.assertThrowsExceptionOfType(
+                    ()-> animalService.updateAnimal(animal.getId(), updateDTO, testCase.isUserIsPrimaryCaretaker() ? user : secondUser),
+                    ErrorFactory.authForbidden(),
+                    "no ability to update animal"
+            );
+            return;
+        }
+
         AnimalDTO updatedAnimal = animalService.updateAnimal(animal.getId(), updateDTO, testCase.isUserIsPrimaryCaretaker() ? user : secondUser);
 
         Object expectedValue = testCase.isShouldSucceed()

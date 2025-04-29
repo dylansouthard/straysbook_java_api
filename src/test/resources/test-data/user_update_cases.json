@@ -21,7 +21,7 @@
     },
     "nullable": false,
     "shouldSucceed": false,
-    "throwsError": "INVALID_UPDATE"
+    "throwsError": "INVALID_PARAMS"
   },
   {
     "desc": "Update field: displayName to ",
@@ -33,7 +33,7 @@
     },
     "nullable": false,
     "shouldSucceed": false,
-    "throwsError": "INVALID_UPDATE"
+    "throwsError": "INVALID_PARAMS"
   },
   {
     "desc": "Update field: email to cooler@example.com",

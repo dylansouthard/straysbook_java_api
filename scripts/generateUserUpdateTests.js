@@ -16,7 +16,7 @@ const generateTestCase = (field, nullable, shouldSucceed, originalValue, updateV
         },
         nullable:nullable,
         shouldSucceed: shouldSucceed,
-        throwsError: shouldSucceed ? null : "INVALID_UPDATE"
+        throwsError: shouldSucceed ? null : "INVALID_PARAMS"
     };
 };
 

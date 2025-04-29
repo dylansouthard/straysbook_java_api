@@ -7,6 +7,7 @@ import info.dylansouthard.StraysBookAPI.model.base.DBEntity;
 import info.dylansouthard.StraysBookAPI.model.friendo.Animal;
 import info.dylansouthard.StraysBookAPI.model.friendo.Litter;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -22,6 +23,7 @@ import java.util.*;
 public class User extends DBEntity {
 
     @Column(nullable = false)
+    @NotNull
     private String displayName;
 
     @Column(unique = true)
@@ -144,6 +146,6 @@ public class User extends DBEntity {
     }
 
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList(); // You can add real roles later
+        return Collections.emptyList();
     }
 }
