@@ -1,7 +1,11 @@
 package info.dylansouthard.StraysBookAPI.controller;
 
+import info.dylansouthard.StraysBookAPI.constants.ApiRoutes;
+import info.dylansouthard.StraysBookAPI.dto.user.AuthStatusDTO;
 import info.dylansouthard.StraysBookAPI.dto.user.AuthTokenPairDTO;
+import info.dylansouthard.StraysBookAPI.dto.user.UserPrivateDTO;
 import info.dylansouthard.StraysBookAPI.errors.ErrorFactory;
+import info.dylansouthard.StraysBookAPI.mapper.UserMapper;
 import info.dylansouthard.StraysBookAPI.model.user.User;
 import info.dylansouthard.StraysBookAPI.service.AuthTokenService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,12 +16,26 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 @RestController
-@RequestMapping("/api/auth")
 public class AuthTokenController {
     @Autowired
     private AuthTokenService authTokenService;
 
-    @PostMapping("/refresh")
+    @Autowired
+    private UserMapper userMapper;
+
+    @GetMapping(ApiRoutes.AUTH.STATUS)
+    @Operation(summary = "Check user authentication status", description = "Returns authentication status and user info if authenticated.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User status retrieved successfully"),
+            @ApiResponse(responseCode = "500", description = "Server error")
+    })
+    public ResponseEntity<AuthStatusDTO> checkUserStatus(@AuthenticationPrincipal User user) {
+        if (user == null) return ResponseEntity.ok(new AuthStatusDTO(false, null));
+        UserPrivateDTO userDTO = userMapper.toUserPrivateDTO(user);
+        return ResponseEntity.ok(new AuthStatusDTO(true, userDTO));
+    }
+
+    @PostMapping(ApiRoutes.AUTH.REFRESH)
     @Operation(summary = "Refresh access token")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Token refreshed successfully"),
@@ -33,7 +51,7 @@ public class AuthTokenController {
         return ResponseEntity.ok(newAccessToken);
     }
 
-    @DeleteMapping("/revoke")
+    @DeleteMapping(ApiRoutes.AUTH.REVOKE)
     @Operation(summary = "Revoke token for a specific device")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Token revoked successfully"),
@@ -51,7 +69,7 @@ public class AuthTokenController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/revoke-all")
+    @DeleteMapping(ApiRoutes.AUTH.REVOKE_ALL)
     @Operation(summary = "Revoke all tokens for the current user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "All tokens revoked successfully"),

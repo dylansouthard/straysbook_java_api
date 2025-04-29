@@ -50,8 +50,8 @@ public class AuthTokenService {
         return generateToken(user, deviceId, AuthTokenType.REFRESH, REFRESH_EXPIRATION);
     }
 
-    public User validateAccessToken(String jwt) {
-        try {
+    public Long validateAccessToken(String jwt) {
+
             Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
 
             Claims claims = Jwts.parserBuilder()
@@ -60,12 +60,15 @@ public class AuthTokenService {
                     .parseClaimsJws(jwt)
                     .getBody();
 
-            Long userId = Long.valueOf(claims.getSubject());
+            return Long.valueOf(claims.getSubject());
+    }
 
-            return userRepository.findActiveById(userId).orElseThrow(ErrorFactory::auth);
-
-        } catch (JwtException | IllegalArgumentException e) {
-            throw ErrorFactory.auth();
+    public User fetchUserByAccessToken(String accessToken) {
+        try {
+            long userId = validateAccessToken(accessToken);
+            return userRepository.findById(userId).orElse(null);
+        } catch (JwtException e) {
+            return null;
         }
     }
 
@@ -87,7 +90,7 @@ public class AuthTokenService {
 
     @Transactional
     public void revokeAllTokensForUser(User user) {
-        User fetchedUser = userRepository.findActiveById(user.getId()).orElseThrow(ErrorFactory::auth);
+        User fetchedUser = userRepository.findById(user.getId()).orElseThrow(ErrorFactory::auth);
 
         Iterator<AuthToken> iterator = fetchedUser.getAuthTokens().iterator();
         while (iterator.hasNext()) {

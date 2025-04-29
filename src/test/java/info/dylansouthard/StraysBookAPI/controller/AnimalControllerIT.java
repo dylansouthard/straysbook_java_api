@@ -3,6 +3,7 @@ package info.dylansouthard.StraysBookAPI.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import info.dylansouthard.StraysBookAPI.BaseDBTest;
 import info.dylansouthard.StraysBookAPI.cases.AnimalUpdateTestCase;
+import info.dylansouthard.StraysBookAPI.constants.ApiRoutes;
 import info.dylansouthard.StraysBookAPI.dto.friendo.CreateAnimalDTO;
 import info.dylansouthard.StraysBookAPI.errors.AppException;
 import info.dylansouthard.StraysBookAPI.errors.ErrorCodes;
@@ -63,8 +64,7 @@ public class AnimalControllerIT extends BaseDBTest {
 
         CreateAnimalDTO dto = generateCreateAnimalDTO();
         String json = objectMapper.writeValueAsString(dto);
-
-        mockMvc.perform(post("/api/animals/")
+        mockMvc.perform(post(ApiRoutes.ANIMALS.CREATE)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isCreated());
@@ -73,7 +73,7 @@ public class AnimalControllerIT extends BaseDBTest {
     @Test
     public void When_FetchingValidAnimal_ReturnAnimalDTO() throws Exception {
         Animal savedAnimal = animalRepository.save(createAnimal());
-        mockMvc.perform(get("/api/animals/" + savedAnimal.getId()))
+        mockMvc.perform(get(ApiRoutes.ANIMALS.BASE + "/" + savedAnimal.getId()))
                 .andExpect(status().isOk());
     }
 
@@ -81,7 +81,7 @@ public class AnimalControllerIT extends BaseDBTest {
     public void When_FetchingInvalidAnimal_ReturnNotFoundError() throws Exception {
         long invalidId = 9999L;  // Assumed non-existent
 
-        mockMvc.perform(get("/api/animals/" + invalidId))
+        mockMvc.perform(get(ApiRoutes.ANIMALS.BASE + "/" + invalidId))
                 .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(ErrorCodes.ANIMAL_NOT_FOUND))
@@ -97,7 +97,7 @@ public class AnimalControllerIT extends BaseDBTest {
         animalRepository.saveAll(List.of(nearbyAnimal, farAnimal));
 
         // When: Perform GET request to /nearby
-        mockMvc.perform(get("/api/animals/nearby")
+        mockMvc.perform(get(ApiRoutes.ANIMALS.NEARBY)
                         .param("lat", "34.7385")
                         .param("lon", "135.3415")
                         .param("radius", "1000")  // meters
@@ -110,7 +110,7 @@ public class AnimalControllerIT extends BaseDBTest {
     @Test
     public void When_InvalidCoordinatesProvided_Expect400Error() throws Exception {
         // Test 1: Missing lat param
-        mockMvc.perform(get("/api/animals/nearby")
+        mockMvc.perform(get(ApiRoutes.ANIMALS.NEARBY)
                         .param("lon", "135.3415"))  // ❌ No lat
                 .andDo(print())
                 .andExpect(status().isBadRequest())
@@ -118,7 +118,7 @@ public class AnimalControllerIT extends BaseDBTest {
                 .andExpect(jsonPath("$.message").value(ErrorMessages.INVALID_COORDINATES));
 
         // Test 2: Missing lon param
-        mockMvc.perform(get("/api/animals/nearby")
+        mockMvc.perform(get(ApiRoutes.ANIMALS.NEARBY)
                         .param("lat", "34.7385"))  // ❌ No lon
                 .andDo(print())
                 .andExpect(status().isBadRequest())
@@ -126,7 +126,7 @@ public class AnimalControllerIT extends BaseDBTest {
                 .andExpect(jsonPath("$.message").value(ErrorMessages.INVALID_COORDINATES));
 
         // Test 3: Both missing
-        mockMvc.perform(get("/api/animals/nearby"))  // ❌ No lat/lon
+        mockMvc.perform(get(ApiRoutes.ANIMALS.NEARBY))  // ❌ No lat/lon
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(ErrorCodes.INVALID_COORDINATES))
@@ -171,7 +171,7 @@ public class AnimalControllerIT extends BaseDBTest {
 
 
         // Perform the PATCH request and assert the correct HTTP status
-        ResultActions result = mockMvc.perform(patch("/api/animals/" + animal.getId())
+        ResultActions result = mockMvc.perform(patch(ApiRoutes.ANIMALS.BASE + "/" + animal.getId())
                         .with(TestSecurityUtil.testUser(testCase.isUserIsPrimaryCaretaker() ? user : secondUser))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateJson)));
@@ -208,7 +208,7 @@ public class AnimalControllerIT extends BaseDBTest {
         Animal animal = createAnimalWithPrimaryCaretaker(user, secondUser);
 
         TestSecurityUtil.authenticateTestUser(user);
-        mockMvc.perform(delete("/api/animals/" + animal.getId())
+        mockMvc.perform(delete(ApiRoutes.ANIMALS.BASE + "/" + animal.getId())
                         .with(TestSecurityUtil.testUser(user)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
@@ -222,7 +222,7 @@ public class AnimalControllerIT extends BaseDBTest {
         Animal animal = createAnimalWithPrimaryCaretaker(user, secondUser);
         TestSecurityUtil.authenticateTestUser(secondUser);
 
-        ResultActions result = mockMvc.perform(delete("/api/animals/" + animal.getId())
+        ResultActions result = mockMvc.perform(delete(ApiRoutes.ANIMALS.BASE + "/" + animal.getId())
                         .with(TestSecurityUtil.testUser(secondUser)))
                 .andDo(print());
 

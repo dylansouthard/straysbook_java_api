@@ -29,4 +29,9 @@ public abstract class UserRegisteredDBEntity extends DBEntity {
     public UserRegisteredDBEntity(User registeredBy) {
         this.registeredBy = registeredBy;
     }
+
+    public User getRegisteredBy() {
+        if (registeredBy == null || registeredBy.getIsDeleted()) return null;
+        return registeredBy;
+    }
 }

@@ -1,5 +1,6 @@
 package info.dylansouthard.StraysBookAPI.controller;
 
+import info.dylansouthard.StraysBookAPI.constants.ApiRoutes;
 import info.dylansouthard.StraysBookAPI.dto.friendo.AnimalDTO;
 import info.dylansouthard.StraysBookAPI.dto.friendo.AnimalSummaryDTO;
 import info.dylansouthard.StraysBookAPI.dto.friendo.CreateAnimalDTO;
@@ -20,12 +21,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/animals")
 public class AnimalController {
     @Autowired
     private AnimalService animalService;
 
-    @PostMapping("/")
+    @PostMapping(ApiRoutes.ANIMALS.CREATE)
     @Operation(summary = "Register a new animal", description = "Creates and registers a new animal. Requires authentication.")
     @ApiResponse(responseCode = "201", description = "Animal created successfully")
     @ApiResponse(responseCode = "400", description = "Invalid request. Error Code: INVALID_CREATE")
@@ -35,12 +35,13 @@ public class AnimalController {
             @RequestBody CreateAnimalDTO dto,
             @AuthenticationPrincipal User user
     ) {
+
         if (user == null) throw ErrorFactory.auth();
         AnimalDTO created = animalService.createAnimal(dto, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    @GetMapping("/nearby")
+    @GetMapping(ApiRoutes.ANIMALS.NEARBY)
     @Operation(summary = "Find animals near a location", description = "Retrieve a list of animals near the provided latitude and longitude.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Animals found and returned"),
@@ -61,7 +62,7 @@ public class AnimalController {
         return ResponseEntity.ok(animals);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(ApiRoutes.ANIMALS.DETAIL)
     @Operation(summary = "Fetch detailed animal information", description = "Retrieve full animal details by ID.")
     @ApiResponse(responseCode = "200", description = "Animal found and returned")
     @ApiResponse(responseCode = "400", description = "Invalid parameters. Error Code: INVALID_PARAMS")
@@ -72,7 +73,7 @@ public class AnimalController {
         return ResponseEntity.ok(animal);
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping(ApiRoutes.ANIMALS.DETAIL)
     @Operation(summary = "Update an animal", description = "Updates allowed fields of an animal. Requires authentication.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Animal updated successfully"),
@@ -92,7 +93,7 @@ public class AnimalController {
         return ResponseEntity.ok(updated);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping(ApiRoutes.ANIMALS.DETAIL)
     @Operation(summary = "Delete an animal", description = "Deletes an animal. Only allowed for the primary caretaker.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Animal deleted successfully"),

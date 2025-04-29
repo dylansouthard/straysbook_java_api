@@ -7,6 +7,7 @@ import info.dylansouthard.StraysBookAPI.errors.AppException;
 import info.dylansouthard.StraysBookAPI.errors.ErrorFactory;
 import info.dylansouthard.StraysBookAPI.mapper.UserMapper;
 import info.dylansouthard.StraysBookAPI.model.user.User;
+import info.dylansouthard.StraysBookAPI.repository.AuthTokenRepository;
 import info.dylansouthard.StraysBookAPI.repository.UserRepository;
 import info.dylansouthard.StraysBookAPI.rules.update.UpdateRuleLoader;
 import info.dylansouthard.StraysBookAPI.rules.update.UserUpdateRule;
@@ -14,6 +15,7 @@ import info.dylansouthard.StraysBookAPI.util.updaters.UserUpdater;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Service
@@ -23,6 +25,11 @@ public class UserService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private AuthTokenRepository authTokenRepository;
+    @Autowired
+    private AuthTokenService authTokenService;
 
     public UserPublicDTO fetchUserDetails(Long userId) {
         User user = userRepository.findActiveById(userId).orElseThrow(ErrorFactory::userNotFound);
@@ -60,6 +67,19 @@ public class UserService {
         } catch (AppException e) {
             throw e;
         } catch (Exception e) {
+            throw ErrorFactory.internalServerError();
+        }
+    }
+
+    public void deleteUser(Long userId) {
+        User user = userRepository.findActiveById(userId).orElseThrow(ErrorFactory::userNotFound);
+        try {
+            user.setIsDeleted(true);
+            user.setDeletionRequestedAt(LocalDateTime.now());
+            userRepository.save(user);
+            authTokenService.revokeAllTokensForUser(user);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
             throw ErrorFactory.internalServerError();
         }
     }

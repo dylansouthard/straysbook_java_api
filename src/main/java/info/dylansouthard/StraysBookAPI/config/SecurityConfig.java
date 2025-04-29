@@ -1,5 +1,7 @@
 package info.dylansouthard.StraysBookAPI.config;
 
+import info.dylansouthard.StraysBookAPI.constants.ApiRoutes;
+import info.dylansouthard.StraysBookAPI.security.CustomAuthenticationEntryPoint;
 import info.dylansouthard.StraysBookAPI.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -16,20 +18,25 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/user/auth/**",      // OAuth callback endpoints
-                                "/api/token/refresh",     // Refresh endpoint
+                                ApiRoutes.AUTH.BASE + "/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/actuator/**"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/animals/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, ApiRoutes.USERS.BASE + "/*" ).permitAll()
+                        .requestMatchers(HttpMethod.GET, ApiRoutes.ANIMALS.BASE + "/**").permitAll()
+                        .requestMatchers(ApiRoutes.USERS.ME).authenticated()
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         ;

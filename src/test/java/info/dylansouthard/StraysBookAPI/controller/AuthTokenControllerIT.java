@@ -3,6 +3,7 @@ package info.dylansouthard.StraysBookAPI.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import info.dylansouthard.StraysBookAPI.BaseDBTest;
 import info.dylansouthard.StraysBookAPI.config.DummyTestData;
+import info.dylansouthard.StraysBookAPI.constants.ApiRoutes;
 import info.dylansouthard.StraysBookAPI.dto.user.AuthTokenDTO;
 import info.dylansouthard.StraysBookAPI.model.user.User;
 import info.dylansouthard.StraysBookAPI.service.AuthTokenService;
@@ -12,10 +13,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -33,13 +35,36 @@ public class AuthTokenControllerIT extends BaseDBTest {
         @Autowired
         private AuthTokenService authTokenService;
 
+    @Test
+    public void When_StatusCalledWithValidToken_Expect_AuthenticatedTrue() throws Exception {
+        User user = userRepository.save(DummyTestData.createUser());
+
+        // Generate token and simulate login
+        AuthTokenDTO tokenDTO = authTokenService.generateAccessToken(user, "test-device");
+        String bearerToken = "Bearer " + tokenDTO.getToken();
+
+        mockMvc.perform(get(ApiRoutes.AUTH.STATUS)
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.authenticated").value(true))
+                .andExpect(jsonPath("$.user.id").value(user.getId()));
+    }
+
+    @Test
+    public void When_StatusCalledWithoutToken_Expect_AuthenticatedFalse() throws Exception {
+        mockMvc.perform(get(ApiRoutes.AUTH.STATUS))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.authenticated").value(false))
+                .andExpect(jsonPath("$.user").doesNotExist());
+    }
+
         @Test
         public void When_RefreshToken_Expect_NewAccessTokenReturned() throws Exception {
             User user = userRepository.save(DummyTestData.createUser());
             String deviceId = "device123";
             AuthTokenDTO refreshToken = authTokenService.generateRefreshToken(user, deviceId);
 
-            mockMvc.perform(post("/api/auth/refresh")
+            mockMvc.perform(post(ApiRoutes.AUTH.REFRESH)
                             .param("deviceId", deviceId)
                             .param("refreshToken", refreshToken.getToken()))
                     .andExpect(status().isOk())
@@ -59,7 +84,7 @@ public class AuthTokenControllerIT extends BaseDBTest {
 
             TestSecurityUtil.authenticateTestUser(user);
 
-            mockMvc.perform(delete("/api/auth/revoke-all")
+            mockMvc.perform(delete(ApiRoutes.AUTH.REVOKE_ALL)
                             .with(TestSecurityUtil.testUser(user)))
                     .andExpect(status().isNoContent());
         }
@@ -67,11 +92,11 @@ public class AuthTokenControllerIT extends BaseDBTest {
         @Test
         public void When_RevokeTokenForDevice_Expect_TokenRemoved() throws Exception {
             User user = userRepository.save(DummyTestData.createUser());
-            AuthTokenDTO token = authTokenService.generateRefreshToken(user, "device123");
+            authTokenService.generateRefreshToken(user, "device123");
 
             TestSecurityUtil.authenticateTestUser(user);
 
-            mockMvc.perform(delete("/api/auth/revoke")
+            mockMvc.perform(delete(ApiRoutes.AUTH.REVOKE)
                             .param("deviceId", "device123")
                             .with(TestSecurityUtil.testUser(user)))
                     .andExpect(status().isNoContent());
