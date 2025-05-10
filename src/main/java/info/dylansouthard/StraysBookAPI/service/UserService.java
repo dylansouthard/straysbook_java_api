@@ -6,7 +6,9 @@ import info.dylansouthard.StraysBookAPI.dto.user.UserPublicDTO;
 import info.dylansouthard.StraysBookAPI.errors.AppException;
 import info.dylansouthard.StraysBookAPI.errors.ErrorFactory;
 import info.dylansouthard.StraysBookAPI.mapper.UserMapper;
+import info.dylansouthard.StraysBookAPI.model.friendo.Animal;
 import info.dylansouthard.StraysBookAPI.model.user.User;
+import info.dylansouthard.StraysBookAPI.repository.AnimalRepository;
 import info.dylansouthard.StraysBookAPI.repository.AuthTokenRepository;
 import info.dylansouthard.StraysBookAPI.repository.UserRepository;
 import info.dylansouthard.StraysBookAPI.rules.update.UpdateRuleLoader;
@@ -28,8 +30,12 @@ public class UserService {
 
     @Autowired
     private AuthTokenRepository authTokenRepository;
+
     @Autowired
     private AuthTokenService authTokenService;
+
+    @Autowired
+    private AnimalRepository animalRepository;
 
     public UserPublicDTO fetchUserDetails(Long userId) {
         User user = userRepository.findActiveById(userId).orElseThrow(ErrorFactory::userNotFound);
@@ -79,6 +85,19 @@ public class UserService {
             userRepository.save(user);
             authTokenService.revokeAllTokensForUser(user);
         } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw ErrorFactory.internalServerError();
+        }
+    }
+
+    public UserPrivateDTO addAnimalToWatchlist(Long userId, Long animalId) {
+        User user = userRepository.findActiveById(userId).orElseThrow(ErrorFactory::userNotFound);
+        Animal animal = animalRepository.findByActiveId(animalId).orElseThrow(ErrorFactory::animalNotFound);
+        user.addWatchedAnimal(animal);
+        try {
+           User savedUser = userRepository.save(user);
+           return userMapper.toUserPrivateDTO(savedUser);
+        } catch (AppException e) {
             System.out.println(e.getMessage());
             throw ErrorFactory.internalServerError();
         }

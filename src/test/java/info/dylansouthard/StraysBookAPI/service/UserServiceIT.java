@@ -6,6 +6,7 @@ import info.dylansouthard.StraysBookAPI.config.DummyTestData;
 import info.dylansouthard.StraysBookAPI.dto.user.UpdateUserDTO;
 import info.dylansouthard.StraysBookAPI.dto.user.UserPrivateDTO;
 import info.dylansouthard.StraysBookAPI.errors.ErrorFactory;
+import info.dylansouthard.StraysBookAPI.model.friendo.Animal;
 import info.dylansouthard.StraysBookAPI.model.user.AuthToken;
 import info.dylansouthard.StraysBookAPI.model.user.User;
 import info.dylansouthard.StraysBookAPI.repository.AuthTokenRepository;
@@ -99,6 +100,40 @@ public class UserServiceIT extends BaseDBTest {
                 ()->userService.deleteUser(123L),
                 ErrorFactory.userNotFound(),
                 "Delete nonexistent user"
+        );
+    }
+
+    @Test
+    public void When_AddingAnimalToWatchlist_Expect_AnimalAddedToWatchlist() {
+        User user = userRepository.save(DummyTestData.createUser());
+        Animal animal = animalRepository.save(DummyTestData.createAnimal());
+        UserPrivateDTO dto = userService.addAnimalToWatchlist(user.getId(), animal.getId());
+
+        assertAll("add animal to watchlist assertions",
+                ()->assertEquals(1, dto.getWatchedAnimals().size(), "Should have one watched animal"),
+                ()->assertEquals(animal.getId(), dto.getWatchedAnimals().iterator().next().getId())
+        );
+    }
+
+    @Test
+    public void When_AddingInvalidAnimalToWatchlist_Expect_ThrowsError() {
+        User user = userRepository.save(DummyTestData.createUser());
+        Animal animal = DummyTestData.createAnimal();
+        ExceptionAssertionRunner.assertThrowsExceptionOfType(
+                ()-> userService.addAnimalToWatchlist(user.getId(), animal.getId()),
+                ErrorFactory.animalNotFound(),
+                "Add invalid animal to watchlist"
+                );
+    }
+
+    @Test
+    public void When_AddingAnimalToWatchlistofInvalidUser_Expect_ThrowsError() {
+        User user = DummyTestData.createUser();
+        Animal animal = animalRepository.save(DummyTestData.createAnimal());
+        ExceptionAssertionRunner.assertThrowsExceptionOfType(
+                ()-> userService.addAnimalToWatchlist(user.getId(), animal.getId()),
+                ErrorFactory.userNotFound(),
+                "Add invalid animal to watchlist"
         );
     }
 }
