@@ -118,7 +118,9 @@ public class UserServiceIT extends BaseDBTest {
     @Test
     public void When_AddingInvalidAnimalToWatchlist_Expect_ThrowsError() {
         User user = userRepository.save(DummyTestData.createUser());
+
         Animal animal = DummyTestData.createAnimal();
+        animal.setId(234L);
         ExceptionAssertionRunner.assertThrowsExceptionOfType(
                 ()-> userService.addAnimalToWatchlist(user.getId(), animal.getId()),
                 ErrorFactory.animalNotFound(),
@@ -129,6 +131,7 @@ public class UserServiceIT extends BaseDBTest {
     @Test
     public void When_AddingAnimalToWatchlistofInvalidUser_Expect_ThrowsError() {
         User user = DummyTestData.createUser();
+        user.setId(234L);
         Animal animal = animalRepository.save(DummyTestData.createAnimal());
         ExceptionAssertionRunner.assertThrowsExceptionOfType(
                 ()-> userService.addAnimalToWatchlist(user.getId(), animal.getId()),
