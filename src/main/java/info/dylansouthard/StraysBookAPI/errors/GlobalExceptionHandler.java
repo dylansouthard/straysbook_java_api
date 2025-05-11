@@ -1,5 +1,7 @@
 package info.dylansouthard.StraysBookAPI.errors;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -30,12 +32,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(new ErrorResponse(ErrorCodes.INVALID_PARAMS, ErrorMessages.INVALID_PARAMS));
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
-        String message = ex.getBindingResult().getFieldError() != null
-                ? ex.getBindingResult().getFieldError().getDefaultMessage()
-                : ErrorMessages.INVALID_PARAMS;
+    @ExceptionHandler({MethodArgumentNotValidException.class, ConstraintViolationException.class})
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(Exception ex) {
+        String message;
+        if (ex instanceof MethodArgumentNotValidException manve) {
+            message = manve.getBindingResult().getFieldError() != null
+                    ? manve.getBindingResult().getFieldError().getDefaultMessage()
+                    : "Invalid input";
+        } else if (ex instanceof ConstraintViolationException cve) {
+            message = cve.getConstraintViolations().stream()
+                    .map(ConstraintViolation::getMessage)
+                    .findFirst()
+                    .orElse("Invalid input");
+        } else {
+            message = "Invalid input";
+        }
+
         return ResponseEntity.badRequest().body(new ErrorResponse(ErrorCodes.INVALID_PARAMS, message));
     }
-
 }

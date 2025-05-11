@@ -67,14 +67,20 @@ public class UserControllerIT extends BaseDBTest {
 
     @Test
     @Transactional
-    public void When_FetchingUserByIdWithInvalidId_ExpectNotFoundError() throws Exception {
+    public void When_FetchingUserByIdWithInvalidId_ExpectThrowsException() throws Exception {
         long invalidId = 999999L; // Assuming it doesn't exist
 
         ResultActions result = mockMvc.perform(get(ApiRoutes.USERS.BASE + "/" + invalidId))
                 .andExpect(status().isNotFound());
 
         ExceptionAssertionRunner.assertThrowsExceptionOfType(result, ErrorFactory.userNotFound());
+
+        String nonLongID = "hello";
+        ResultActions resultTwo = mockMvc.perform(get(ApiRoutes.USERS.BASE + "/" + nonLongID));
+        ExceptionAssertionRunner.assertThrowsExceptionOfType(resultTwo, ErrorFactory.invalidParams());
     }
+
+
 
     @Test
     @Transactional
@@ -199,13 +205,17 @@ public class UserControllerIT extends BaseDBTest {
     public void When_UpdatingWatchlistWithEmptyID_Expect_ThrowsException() throws Exception {
         User user = userRepository.save(DummyTestData.createUser());
         TestSecurityUtil.authenticateTestUser(user);
-        Animal animal = animalRepository.save(DummyTestData.createAnimal());
 
-        UpdateWatchlistDTO watchlistDTO = new UpdateWatchlistDTO();
+        UpdateWatchlistDTO watchlistDTO = new UpdateWatchlistDTO(123L);
 
-        ResultActions result = performUpdateWatchlistCall(user, watchlistDTO, user.getId());
+        ResultActions noAnimalResult = performUpdateWatchlistCall(user, watchlistDTO, user.getId());
 
-        ExceptionAssertionRunner.assertThrowsExceptionOfType(result, ErrorFactory.animalNotFound());
+        ExceptionAssertionRunner.assertThrowsExceptionOfType(noAnimalResult, ErrorFactory.animalNotFound());
+
+        UpdateWatchlistDTO emptyDTO = new UpdateWatchlistDTO();
+        ResultActions noContentResult = performUpdateWatchlistCall(user, emptyDTO, user.getId());
+
+        ExceptionAssertionRunner.assertThrowsExceptionOfType(noContentResult, ErrorFactory.invalidParams());
     }
 
 

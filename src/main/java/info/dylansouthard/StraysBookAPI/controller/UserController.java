@@ -11,14 +11,17 @@ import info.dylansouthard.StraysBookAPI.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@Validated
 public class UserController {
 
     //region VARIABLES================================================================================================
@@ -32,7 +35,7 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "User found and returned")
     @ApiResponse(responseCode = "404", description = "User not found. Error Code: USER_NOT_FOUND")
     @ApiResponse(responseCode = "500", description = "Server error. Error Code: INTERNAL_SERVER_ERROR")
-    public ResponseEntity<UserPublicDTO> getUserById(@PathVariable("id") Long id) {
+    public ResponseEntity<UserPublicDTO> getUserById(@Valid @PathVariable("id") Long id) {
         UserPublicDTO user = userService.fetchUserDetails(id);
         return ResponseEntity.ok(user);
     }
@@ -88,11 +91,12 @@ public class UserController {
     })
     public ResponseEntity<UserPrivateDTO> updateWatchlist(
             @PathVariable Long id,
-            @RequestBody UpdateWatchlistDTO updateDTO,
+            @Valid @RequestBody UpdateWatchlistDTO updateDTO,
             @AuthenticationPrincipal User user
     ) {
         if (user == null) throw ErrorFactory.auth();
         if (!user.getId().equals(id)) throw ErrorFactory.authForbidden();
+        if (updateDTO.getAnimalId() == null) throw ErrorFactory.invalidParams();
         UserPrivateDTO updated = userService.updateWatchlist(id, updateDTO.getAnimalId());
         return ResponseEntity.ok(updated);
     }
