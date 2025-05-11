@@ -2,7 +2,7 @@ package info.dylansouthard.StraysBookAPI.model.user;
 
 import info.dylansouthard.StraysBookAPI.errors.exceptions.DuplicateOAuthProviderException;
 import info.dylansouthard.StraysBookAPI.model.CareEvent;
-import info.dylansouthard.StraysBookAPI.model.FeedItem;
+import info.dylansouthard.StraysBookAPI.model.Notification;
 import info.dylansouthard.StraysBookAPI.model.base.DBEntity;
 import info.dylansouthard.StraysBookAPI.model.friendo.Animal;
 import info.dylansouthard.StraysBookAPI.model.friendo.Litter;
@@ -67,7 +67,7 @@ public class User extends DBEntity {
     private Set<AuthToken> authTokens = new HashSet<>();
 
     @OneToMany(mappedBy="registeredBy")
-    private Set<FeedItem> associatedFeedItems = new HashSet<>();
+    private Set<Notification> associatedNotifications = new HashSet<>();
 
     public void addOAuthProvider(OAuthProvider provider) {
         if (this.oAuthProviders.stream().anyMatch(p->p.getProvider().equals(provider.getProvider()))){
@@ -98,8 +98,8 @@ public class User extends DBEntity {
             careEvent.setRegisteredBy(null);
         }
 
-        for (FeedItem feedItem : this.associatedFeedItems) {
-            feedItem.setRegisteredBy(null);
+        for (Notification notification : this.associatedNotifications) {
+            notification.setRegisteredBy(null);
         }
 
         for (Litter litter : this.watchedLitters) {

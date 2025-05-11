@@ -1,7 +1,7 @@
 package info.dylansouthard.StraysBookAPI.model.friendo;
 
 import info.dylansouthard.StraysBookAPI.model.CareEvent;
-import info.dylansouthard.StraysBookAPI.model.FeedItem;
+import info.dylansouthard.StraysBookAPI.model.Notification;
 import info.dylansouthard.StraysBookAPI.model.SterilizationStatus;
 import info.dylansouthard.StraysBookAPI.model.Vaccination;
 import info.dylansouthard.StraysBookAPI.model.enums.AnimalType;
@@ -84,7 +84,7 @@ public class Animal extends Friendo {
     private Litter litter;
 
     @ManyToMany(mappedBy="animals")
-    private Set<FeedItem> associatedFeedItems = new HashSet<>();
+    private Set<Notification> associatedNotifications = new HashSet<>();
 
     @PrePersist
     @PreUpdate
@@ -104,8 +104,8 @@ public class Animal extends Friendo {
             careEvent.getAnimals().remove(this);
         }
 
-        for (FeedItem feedItem : associatedFeedItems) {
-            feedItem.getAnimals().remove(this);
+        for (Notification notification : associatedNotifications) {
+            notification.getAnimals().remove(this);
         }
 
         if (litter != null) {

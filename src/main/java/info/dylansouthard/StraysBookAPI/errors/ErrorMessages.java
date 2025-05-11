@@ -13,7 +13,7 @@ public interface ErrorMessages {
     String DUPLICATE_VACCINATION_EVENT = "A vaccination event of this type has already been registered recently. Please check the records before registering a new event.";
     String FAILED_LOGOUT = "Could not log out the user";
     String FAILED_TO_FETCH = "Could not fetch the requested item";
-    String FEED_ITEMS_FETCH_ERROR = "Error fetching feed items. Please try again later.";
+    String NOTIFICATIONS_FETCH_ERROR = "Error fetching notification. Please try again later.";
     String INTERNAL_SERVER_ERROR = "An unexpected error occurred.";
     String INVALID_COORDINATES = "Invalid Coordinates.";
     String INVALID_CREATE = "Could not save data. Some required fields may be missing";

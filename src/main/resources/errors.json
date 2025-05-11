@@ -69,9 +69,9 @@
     },
     "status": 500
   },
-  "FEED_ITEMS_FETCH_ERROR": {
+  "NOTIFICATIONS_FETCH_ERROR": {
     "message": {
-      "en": "Error fetching feed items. Please try again later.",
+      "en": "Error fetching notification. Please try again later.",
       "th": "เกิดข้อผิดพลาดในการดึงข้อมูลไอเท็มฟีด โปรดลองใหม่อีกครั้งในภายหลัง"
     },
     "status": 500

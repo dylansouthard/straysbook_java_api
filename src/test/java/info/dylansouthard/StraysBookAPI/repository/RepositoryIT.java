@@ -1,7 +1,7 @@
 package info.dylansouthard.StraysBookAPI.repository;
 
 import info.dylansouthard.StraysBookAPI.BaseDBTest;
-import info.dylansouthard.StraysBookAPI.model.FeedItem;
+import info.dylansouthard.StraysBookAPI.model.Notification;
 import info.dylansouthard.StraysBookAPI.model.enums.AnimalType;
 import info.dylansouthard.StraysBookAPI.model.enums.FeedItemType;
 import info.dylansouthard.StraysBookAPI.model.enums.SexType;
@@ -32,9 +32,9 @@ public class RepositoryIT extends BaseDBTest {
         return animals;
     }
 
-    protected FeedItem constructValidConditionUpdateFeedItem() {
+    protected Notification constructValidConditionUpdateFeedItem() {
         List<Animal> animals = constructAndSaveValidAnimals();
-        return new FeedItem(FeedItemType.CONDITION_UPDATE, animals);
+        return new Notification(FeedItemType.CONDITION_UPDATE, animals);
     }
 
 

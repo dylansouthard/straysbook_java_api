@@ -18,10 +18,10 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Setter
-public class FeedItemDTO {
+public class NotificationDTO {
 
     @Schema(
-            description = "Unique ID of the feed item",
+            description = "Unique ID of the notification",
             example = "123",
             nullable = false,
             requiredMode = Schema.RequiredMode.REQUIRED,
@@ -30,7 +30,7 @@ public class FeedItemDTO {
     private Long id;
 
     @Schema(
-            description = "Type of feed item (e.g., CARE_EVENT, STATUS_UPDATE, NOTE)",
+            description = "Type of notification (e.g., CARE_EVENT, STATUS_UPDATE, NOTE)",
             example = "CARE_EVENT",
             nullable = false,
             requiredMode = Schema.RequiredMode.REQUIRED
@@ -38,21 +38,21 @@ public class FeedItemDTO {
     private FeedItemType type;
 
     @Schema(
-            description = "List of animals associated with this feed item",
+            description = "List of animals associated with this notification",
             nullable = false,
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private List<AnimalSummaryMinDTO> animals = new ArrayList<>();
 
     @Schema(
-            description = "Summary of the care event linked to this feed item, if applicable",
+            description = "Summary of the care event linked to this notification, if applicable",
             nullable = true,
             requiredMode = Schema.RequiredMode.NOT_REQUIRED
     )
     private CareEventSummaryDTO careEvent;
 
     @Schema(
-            description = "New value associated with this feed item, such as a status change or update note",
+            description = "New value associated with this notification, such as a status change or update note",
             example = "Vaccinated",
             nullable = true,
             requiredMode = Schema.RequiredMode.NOT_REQUIRED
@@ -60,14 +60,14 @@ public class FeedItemDTO {
     private String newValue;
 
     @Schema(
-            description = "User who registered the feed item",
+            description = "User who registered the notification",
             nullable = false,
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private UserSummaryMinDTO registeredBy;
 
     @Schema(
-            description = "Timestamp when the feed item was created, in ISO 8601 format",
+            description = "Timestamp when the notification was created, in ISO 8601 format",
             example = "2025-03-16T14:30:00",
             nullable = false,
             requiredMode = Schema.RequiredMode.REQUIRED,
@@ -77,7 +77,7 @@ public class FeedItemDTO {
     private LocalDateTime createdAt;
 
     @Schema(
-            description = "Optional notes or comments about the feed item",
+            description = "Optional notes or comments about the notification",
             example = "Animal showed improvement after treatment.",
             nullable = true,
             requiredMode = Schema.RequiredMode.NOT_REQUIRED

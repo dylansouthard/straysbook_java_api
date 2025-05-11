@@ -26,7 +26,7 @@ public class BaseDBTest extends BaseTestContainer{
     protected CareEventRepository careEventRepository;
 
     @Autowired
-    protected FeedItemRepository feedItemRepository;
+    protected NotificationRepository notificationRepository;
 
     @Autowired
     protected LitterRepository litterRepository;

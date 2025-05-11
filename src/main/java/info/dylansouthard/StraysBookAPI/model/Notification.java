@@ -13,12 +13,12 @@ import java.util.List;
 import java.util.Set;
 
 @Entity
-@Table(name = "feed_items")
+@Table(name = "notifications")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter @Setter
 @EqualsAndHashCode(callSuper = true, exclude = {"animals", "careEvent"})
-public class FeedItem extends UserRegisteredDBEntity {
+public class Notification extends UserRegisteredDBEntity {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -26,13 +26,13 @@ public class FeedItem extends UserRegisteredDBEntity {
 
     @ManyToMany
     @JoinTable(
-            name = "feed_item_animals",
-            joinColumns = @JoinColumn(name = "feed_item_id"),
+            name = "notification_animals",
+            joinColumns = @JoinColumn(name = "notification_id"),
             inverseJoinColumns = @JoinColumn(name = "animal_id")
     )
     private Set<Animal> animals = new HashSet<>();
 
-    @OneToOne(mappedBy="feedItem")
+    @OneToOne(mappedBy="notification")
     private CareEvent careEvent;
 
     @Column
@@ -40,32 +40,32 @@ public class FeedItem extends UserRegisteredDBEntity {
 
     public void addAnimal(Animal animal) {
         animals.add(animal);
-        if (!animal.getAssociatedFeedItems().contains(this)) {
-            animal.getAssociatedFeedItems().add(this);
+        if (!animal.getAssociatedNotifications().contains(this)) {
+            animal.getAssociatedNotifications().add(this);
         }
     }
 
     @Transactional
     public void removeAnimal(Animal animal) {
         this.animals.removeIf(a -> a.getId().equals(animal.getId()));
-        animal.getAssociatedFeedItems().removeIf(f -> f.getId().equals(this.getId()));
+        animal.getAssociatedNotifications().removeIf(f -> f.getId().equals(this.getId()));
     }
 
     @PreRemove
     private void cleanUpRelationships()  {
         for (Animal animal : animals) {
-            animal.getAssociatedFeedItems().remove(this);
+            animal.getAssociatedNotifications().remove(this);
         }
     }
 
-    public FeedItem(FeedItemType type, List<Animal> animals) {
+    public Notification(FeedItemType type, List<Animal> animals) {
         this.type = type;
         for (Animal animal : animals) {
             addAnimal(animal);
         }
     }
 
-    public FeedItem(List<Animal> animals, CareEvent careEvent, User registeredBy){
+    public Notification(List<Animal> animals, CareEvent careEvent, User registeredBy){
 
         super(registeredBy);
         this.type = FeedItemType.CARE_EVENT;

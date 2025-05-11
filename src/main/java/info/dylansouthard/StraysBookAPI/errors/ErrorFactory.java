@@ -48,8 +48,8 @@ public interface ErrorFactory {
         return of(ErrorCodes.FAILED_TO_FETCH, ErrorMessages.FAILED_TO_FETCH, 500);
     }
 
-    public static AppException feedItemsFetchError() {
-        return of(ErrorCodes.FEED_ITEMS_FETCH_ERROR, ErrorMessages.FEED_ITEMS_FETCH_ERROR, 500);
+    public static AppException notificationsFetchError() {
+        return of(ErrorCodes.NOTIFICATIONS_FETCH_ERROR, ErrorMessages.NOTIFICATIONS_FETCH_ERROR, 500);
     }
 
     public static AppException internalServerError() {
@@ -107,7 +107,7 @@ public interface ErrorFactory {
         Map.entry("DUPLICATE_VACCINATION_EVENT", ErrorFactory::duplicateVaccinationEvent),
         Map.entry("FAILED_LOGOUT", ErrorFactory::failedLogout),
         Map.entry("FAILED_TO_FETCH", ErrorFactory::failedToFetch),
-        Map.entry("FEED_ITEMS_FETCH_ERROR", ErrorFactory::feedItemsFetchError),
+        Map.entry("NOTIFICATIONS_FETCH_ERROR", ErrorFactory::notificationsFetchError),
         Map.entry("INTERNAL_SERVER_ERROR", ErrorFactory::internalServerError),
         Map.entry("INVALID_COORDINATES", ErrorFactory::invalidCoordinates),
         Map.entry("INVALID_CREATE", ErrorFactory::invalidCreate),

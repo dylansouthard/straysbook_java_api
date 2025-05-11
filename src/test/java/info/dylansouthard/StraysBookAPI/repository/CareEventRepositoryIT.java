@@ -1,7 +1,7 @@
 package info.dylansouthard.StraysBookAPI.repository;
 
 import info.dylansouthard.StraysBookAPI.model.CareEvent;
-import info.dylansouthard.StraysBookAPI.model.FeedItem;
+import info.dylansouthard.StraysBookAPI.model.Notification;
 import info.dylansouthard.StraysBookAPI.model.enums.CareEventType;
 import info.dylansouthard.StraysBookAPI.model.friendo.Animal;
 import info.dylansouthard.StraysBookAPI.model.friendo.Litter;
@@ -102,7 +102,7 @@ public class CareEventRepositoryIT extends RepositoryIT {
         Animal animal = animalRepository.saveAndFlush(validAnimal);
         CareEvent careEvent = new CareEvent(CareEventType.FED, LocalDateTime.now(), user);
         careEventRepository.saveAndFlush(careEvent);
-        Optional<FeedItem> foundFeedItem = feedItemRepository.findById(careEvent.getFeedItem().getId());
+        Optional<Notification> foundFeedItem = notificationRepository.findById(careEvent.getNotification().getId());
 
         assertTrue(foundFeedItem.isPresent(), "FeedItem should exist");
     }

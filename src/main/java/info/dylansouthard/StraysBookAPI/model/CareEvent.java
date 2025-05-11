@@ -54,12 +54,12 @@ public class CareEvent extends UserRegisteredDBEntity {
 
     @OneToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "care_event_id")
-    private FeedItem feedItem;
+    private Notification notification;
 
 
     public void createFeedItem() {
-        this.feedItem = new FeedItem(new ArrayList<>(animals), this, this.registeredBy);
-        System.out.println("feed item type is " + this.feedItem.getType());
+        this.notification = new Notification(new ArrayList<>(animals), this, this.registeredBy);
+        System.out.println("notification type is " + this.notification.getType());
     }
 
     public CareEvent(CareEventType type, LocalDateTime date, User registeredBy) {
@@ -109,8 +109,8 @@ public class CareEvent extends UserRegisteredDBEntity {
             litter.getCareEvents().remove(this);
         }
 
-        if (feedItem != null) {
-            feedItem.setCareEvent(null);
+        if (notification != null) {
+            notification.setCareEvent(null);
         }
     }
 
