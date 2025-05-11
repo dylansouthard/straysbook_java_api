@@ -11,7 +11,7 @@ public class ApiRoutes {
         public static final String BASE = "/api/users";
         public static final String DETAIL = "/api/users/{id}";
         public static final String ME = "/api/users/me";
-        public static final String STATUS = "/api/users/status";
+        public static final String WATCHLIST = "/api/users/{id}/watchlist";
     }
     public static class AUTH {
         public static final String BASE = "/api/auth";

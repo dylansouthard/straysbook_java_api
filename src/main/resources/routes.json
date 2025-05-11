@@ -25,9 +25,9 @@
         "_path": "/api/users/me",
         "methods": ["GET", "PATCH", "DELETE"]
       },
-      "status": {
-        "_path": "/api/users/status",
-        "methods": ["GET"]
+      "watchlist": {
+        "_path": "/api/users/:id/watchlist",
+        "methods": ["GET", "PATCH"]
       }
     },
     "auth": {

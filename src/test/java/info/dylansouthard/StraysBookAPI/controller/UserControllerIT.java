@@ -7,8 +7,10 @@ import info.dylansouthard.StraysBookAPI.cases.UserUpdateTestCase;
 import info.dylansouthard.StraysBookAPI.config.DummyTestData;
 import info.dylansouthard.StraysBookAPI.constants.ApiRoutes;
 import info.dylansouthard.StraysBookAPI.dto.user.AuthTokenDTO;
+import info.dylansouthard.StraysBookAPI.dto.user.UpdateWatchlistDTO;
 import info.dylansouthard.StraysBookAPI.errors.AppException;
 import info.dylansouthard.StraysBookAPI.errors.ErrorFactory;
+import info.dylansouthard.StraysBookAPI.model.friendo.Animal;
 import info.dylansouthard.StraysBookAPI.model.user.User;
 import info.dylansouthard.StraysBookAPI.service.AuthTokenService;
 import info.dylansouthard.StraysBookAPI.testutils.ExceptionAssertionRunner;
@@ -38,6 +40,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @AutoConfigureMockMvc
 public class UserControllerIT extends BaseDBTest {
+
+    //region BEANS! =================================
     @Autowired
     private MockMvc mockMvc;
 
@@ -47,6 +51,9 @@ public class UserControllerIT extends BaseDBTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    //endregion
+
+    //region READ===========================
     @Test
     @Transactional
     public void When_FetchingUserByIdWithValidId_ExpectUserReturned() throws Exception {
@@ -93,9 +100,9 @@ public class UserControllerIT extends BaseDBTest {
 
         ExceptionAssertionRunner.assertThrowsExceptionOfType(result, ErrorFactory.auth());
     }
+    //endregion
 
-
-
+    //region UPDATE=========================
     @ParameterizedTest(name = "{index} => {0}")
     @MethodSource("info.dylansouthard.StraysBookAPI.testutils.TestCaseRepo#getUserUpdateTestCases")
     @Transactional
@@ -109,9 +116,7 @@ public class UserControllerIT extends BaseDBTest {
         Map<String, Object> updateJson = new HashMap<>(testCase.getUpdates());
 
         // Apply original values to the user so that updates are measurable
-        testCase.getOriginalValues().forEach((key, value) -> {
-            UserUpdater.applyUpdate(user, key, value);
-        });
+        testCase.getOriginalValues().forEach((key, value) -> UserUpdater.applyUpdate(user, key, value));
 
         // Persist the modified user to the database
         userRepository.save(user);
@@ -144,6 +149,70 @@ public class UserControllerIT extends BaseDBTest {
 
     }
 
+
+
+
+    private ResultActions performUpdateWatchlistCall(User user, UpdateWatchlistDTO watchlistDTO, Long userId) throws Exception {
+        return mockMvc.perform(patch(ApiRoutes.USERS.BASE + "/" + userId + "/watchlist")
+                        .with(TestSecurityUtil.testUser(user))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(watchlistDTO)));
+    }
+
+    private void performWatchlistSuccessAssertion(int expectedLength, User user, UpdateWatchlistDTO watchlistDTO) throws Exception {
+       performUpdateWatchlistCall(user, watchlistDTO, user.getId())
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.watchedAnimals.length()").value(expectedLength));
+
+    }
+
+    /**
+     * Tests adding and removing an animal to/from a user's watchlist and verifies the animal is correctly added/removed.
+     */
+    @Test
+    public void When_AddingToggledInWatchlist_Expect_AnimalToggled() throws Exception {
+        User user = userRepository.save(DummyTestData.createUser());
+        TestSecurityUtil.authenticateTestUser(user);
+
+        Animal animal = animalRepository.save(DummyTestData.createAnimal());
+        UpdateWatchlistDTO watchlistDTO = new UpdateWatchlistDTO(animal.getId());
+
+        performWatchlistSuccessAssertion(1, user, watchlistDTO);
+        performWatchlistSuccessAssertion(0, user, watchlistDTO);
+    }
+
+    @Test
+    public void When_UpdatingWatchlistForOtherUser_Expect_ThrowsException() throws Exception {
+        User user = userRepository.save(DummyTestData.createUser());
+        TestSecurityUtil.authenticateTestUser(user);
+        Animal animal = animalRepository.save(DummyTestData.createAnimal());
+        User user2 = userRepository.save(new User("bob", "bob@bob.com"));
+
+        UpdateWatchlistDTO watchlistDTO = new UpdateWatchlistDTO(animal.getId());
+
+        ResultActions result = performUpdateWatchlistCall(user, watchlistDTO, user2.getId());
+
+        ExceptionAssertionRunner.assertThrowsExceptionOfType(result, ErrorFactory.authForbidden());
+    }
+
+    @Test
+    public void When_UpdatingWatchlistWithEmptyID_Expect_ThrowsException() throws Exception {
+        User user = userRepository.save(DummyTestData.createUser());
+        TestSecurityUtil.authenticateTestUser(user);
+        Animal animal = animalRepository.save(DummyTestData.createAnimal());
+
+        UpdateWatchlistDTO watchlistDTO = new UpdateWatchlistDTO();
+
+        ResultActions result = performUpdateWatchlistCall(user, watchlistDTO, user.getId());
+
+        ExceptionAssertionRunner.assertThrowsExceptionOfType(result, ErrorFactory.animalNotFound());
+    }
+
+
+
+    //endregion
+
+    //region DELETE=========================
     @Test
     @Transactional
     public void When_DeletingUser_ExpectUserDeleted() throws Exception {
@@ -169,4 +238,5 @@ public class UserControllerIT extends BaseDBTest {
 
         ExceptionAssertionRunner.assertThrowsExceptionOfType(result, ErrorFactory.auth());
     }
+    //endregion==========
 }

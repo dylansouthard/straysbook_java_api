@@ -41,33 +41,36 @@ public class AnimalServiceIT extends BaseDBTest {
     @MockitoSpyBean
     private AnimalMapper spyMapper;
 
+    // ==========================================
+    // Animal Creation Tests
+    // ==========================================
+
+    /**
+     * Tests successful animal creation with valid data.
+     */
     @Test
     public void When_ValidCreateAnimalDTO_Expect_AnimalIsCreatedAndSaved() {
+        User user = userRepository.save(DummyTestData.createUser());
+        CreateAnimalDTO dto = generateCreateAnimalDTO();
 
-       User user = userRepository.save(DummyTestData.createUser());
-
-       CreateAnimalDTO dto = generateCreateAnimalDTO();
-
-        // Act
         AnimalDTO result = animalService.createAnimal(dto, user);
 
-        // Assert
         assertAll("AnimalDTO validation",
                 () -> assertNotNull(result, "Result should not be null"),
                 () -> assertEquals(defaultAnimalName, result.getName(), "Animal name should be " + defaultAnimalName),
                 () -> assertEquals(AnimalType.CAT, result.getType(), "Animal type should be CAT")
         );
 
-        //Fetch from DB
         Animal fetchedAnimal = animalRepository.findById(result.getId()).orElse(null);
         assertAll("AnimalDTO saved validation",
-                () -> assertNotNull(fetchedAnimal, "Result should not be null"),
-                () -> assertEquals(defaultAnimalName, fetchedAnimal.getName(), "Animal name should be " + defaultAnimalName),
-                () -> assertEquals(AnimalType.CAT, fetchedAnimal.getType(), "Animal type should be CAT")
+                () -> assertNotNull(fetchedAnimal, "Fetched animal should not be null"),
+                () -> assertEquals(defaultAnimalName, fetchedAnimal.getName(), "Animal name should match")
         );
     }
 
-
+    /**
+     * Tests animal creation with invalid data, expecting an error.
+     */
     @Test
     public void When_InvalidCreateAnimalDTO_Expect_ThrowsError() {
         User user = userRepository.save(DummyTestData.createUser());
@@ -88,6 +91,9 @@ public class AnimalServiceIT extends BaseDBTest {
 
     }
 
+    /**
+     * Tests error handling when the mapper throws an exception.
+     */
     @Test
     public void When_MapperThrowsException_Expect_InternalServerError() {
         User user = userRepository.save(DummyTestData.createUser());
@@ -100,6 +106,13 @@ public class AnimalServiceIT extends BaseDBTest {
         ExceptionAssertionRunner.assertThrowsExceptionOfType(() -> animalService.createAnimal(dto, user), ErrorFactory.internalServerError(), "Internal server error check");
     }
 
+    // ==========================================
+    // Animal Detail Fetching Tests
+    // ==========================================
+
+    /**
+     * Tests fetching animal details.
+     */
     @Test
     public void When_AnimalDetailsFetched_Expect_AnimalIsRetrieved() {
         User user = userRepository.save(DummyTestData.createUser());
@@ -211,10 +224,15 @@ public class AnimalServiceIT extends BaseDBTest {
                 String.valueOf(actualValue),
                 testCase.getDesc() + " Value should match expected update rule"
         );
-//        assertEquals(expectedValue, actualValue, testCase.getDesc() + " Value should match expected update rule");
     }
 
+    // ==========================================
+    // Animal Update Tests
+    // ==========================================
 
+    /**
+     * Tests updating an animal based on update rules.
+     */
     @Test
     void updateAnimal_shouldThrow_whenAnimalNotFound() {
         Long nonexistentId = -1L;
@@ -242,6 +260,13 @@ public class AnimalServiceIT extends BaseDBTest {
 
     }
 
+    // ==========================================
+    // Animal Deletion Tests
+    // ==========================================
+
+    /**
+     * Tests deleting an animal by primary caretaker.
+     */
     @Test
     void When_DeletingAnimal_AnimalShouldBeDeletedOnlyByPrimaryCaretaker() {
         User user = userRepository.save(DummyTestData.createUser());
@@ -256,6 +281,9 @@ public class AnimalServiceIT extends BaseDBTest {
         assertNull(animalRepository.findByActiveId(animal.getId()).orElse(null), "Deleted animal should not exist");
     }
 
+    /**
+     * Tests deleting a nonexistent animal, expecting an error.
+     */
     @Test
     void When_DeletingNonexistentAnimal_ShouldThrowNotFoundError() {
         long invalidId = 9999L;

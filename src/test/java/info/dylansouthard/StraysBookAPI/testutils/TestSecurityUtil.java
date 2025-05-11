@@ -21,16 +21,7 @@ public class TestSecurityUtil {
         SecurityContextHolder.clearContext();
     }
 
-//    public static RequestPostProcessor testUser(User user) {
-//        return mockRequest -> {
-//            UsernamePasswordAuthenticationToken auth =
-//                    new UsernamePasswordAuthenticationToken(user, null, List.of());
-//            mockRequest.setUserPrincipal(auth);
-//            mockRequest.setAttribute("SPRING_SECURITY_CONTEXT",
-//                    new SecurityContextImpl(auth));
-//            return mockRequest;
-//        };
-//    }
+
 public static RequestPostProcessor testUser(User user) {
     return request -> {
         UsernamePasswordAuthenticationToken auth =

@@ -1,6 +1,7 @@
 package info.dylansouthard.StraysBookAPI.errors;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -28,4 +29,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleParamMismatch(MethodArgumentTypeMismatchException ex) {
         return ResponseEntity.badRequest().body(new ErrorResponse(ErrorCodes.INVALID_PARAMS, ErrorMessages.INVALID_PARAMS));
     }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
+        String message = ex.getBindingResult().getFieldError() != null
+                ? ex.getBindingResult().getFieldError().getDefaultMessage()
+                : ErrorMessages.INVALID_PARAMS;
+        return ResponseEntity.badRequest().body(new ErrorResponse(ErrorCodes.INVALID_PARAMS, message));
+    }
+
 }

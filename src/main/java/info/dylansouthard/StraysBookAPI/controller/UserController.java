@@ -2,10 +2,10 @@ package info.dylansouthard.StraysBookAPI.controller;
 
 import info.dylansouthard.StraysBookAPI.constants.ApiRoutes;
 import info.dylansouthard.StraysBookAPI.dto.user.UpdateUserDTO;
+import info.dylansouthard.StraysBookAPI.dto.user.UpdateWatchlistDTO;
 import info.dylansouthard.StraysBookAPI.dto.user.UserPrivateDTO;
 import info.dylansouthard.StraysBookAPI.dto.user.UserPublicDTO;
 import info.dylansouthard.StraysBookAPI.errors.ErrorFactory;
-import info.dylansouthard.StraysBookAPI.mapper.UserMapper;
 import info.dylansouthard.StraysBookAPI.model.user.User;
 import info.dylansouthard.StraysBookAPI.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,11 +20,13 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 public class UserController {
-    private final UserMapper userMapper;
 
+    //region VARIABLES================================================================================================
     @Autowired
     private final UserService userService;
+    //endregion
 
+    //region READ=====================================================================================================
     @GetMapping(ApiRoutes.USERS.DETAIL)
     @Operation(summary = "Fetch detailed user information", description = "Retrieve full user details by ID.")
     @ApiResponse(responseCode = "200", description = "User found and returned")
@@ -52,6 +54,9 @@ public class UserController {
 
         return ResponseEntity.ok(dto);
     }
+    //endregion
+
+    //region UPDATE=====================================================================================================
 
     @PatchMapping(ApiRoutes.USERS.ME)
     @Operation(summary = "Update the current user's profile ", description = "Requires authentication.")
@@ -71,6 +76,32 @@ public class UserController {
         return ResponseEntity.ok(updated);
     }
 
+    @PatchMapping(ApiRoutes.USERS.WATCHLIST)
+    @Operation(summary = "Update the current user's profile ", description = "Requires authentication.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Watchlist updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid update request. Error Code: INVALID_PARAMS"),
+            @ApiResponse(responseCode = "401", description = "Not logged in. Error Code: AUTH"),
+            @ApiResponse(responseCode = "403", description = "Unauthorized. Error Code: AUTH_FORBIDDEN"),
+            @ApiResponse(responseCode = "404", description = "User not found. Error Code: USER_NOT_FOUND"),
+            @ApiResponse(responseCode = "500", description = "Server error. Error Code: INTERNAL_SERVER_ERROR")
+    })
+    public ResponseEntity<UserPrivateDTO> updateWatchlist(
+            @PathVariable Long id,
+            @RequestBody UpdateWatchlistDTO updateDTO,
+            @AuthenticationPrincipal User user
+    ) {
+        if (user == null) throw ErrorFactory.auth();
+        if (!user.getId().equals(id)) throw ErrorFactory.authForbidden();
+        UserPrivateDTO updated = userService.updateWatchlist(id, updateDTO.getAnimalId());
+        return ResponseEntity.ok(updated);
+    }
+
+
+    //endregion
+
+    //region DELETE=====================================================================================================
+
     @DeleteMapping(ApiRoutes.USERS.ME)
     @Operation(summary = "Delete a user's profile", description = "Deletes an user.")
     @ApiResponses(value = {
@@ -79,13 +110,11 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "User not found. Error Code: USER_NOT_FOUND"),
             @ApiResponse(responseCode = "500", description = "Server error. Error Code: INTERNAL_SERVER_ERROR")
     })
-    public ResponseEntity<Void> deleteMyProfile(
-            @AuthenticationPrincipal User user
-    ) {
+    public ResponseEntity<Void> deleteMyProfile(@AuthenticationPrincipal User user) {
         if (user == null) throw ErrorFactory.auth();
-
         userService.deleteUser(user.getId());
-
         return ResponseEntity.noContent().build();
     }
+
+    //endregion
 }

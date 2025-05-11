@@ -90,13 +90,19 @@ public class UserService {
         }
     }
 
-    public UserPrivateDTO addAnimalToWatchlist(Long userId, Long animalId) {
+    public UserPrivateDTO updateWatchlist(Long userId, Long animalId) {
         User user = userRepository.findActiveById(userId).orElseThrow(ErrorFactory::userNotFound);
         Animal animal = animalRepository.findByActiveId(animalId).orElseThrow(ErrorFactory::animalNotFound);
-        user.addWatchedAnimal(animal);
         try {
+            if (user.getWatchedAnimals().contains(animal)) {
+                user.removeWatchedAnimal(animal);
+            } else {
+                user.addWatchedAnimal(animal);
+            }
+
            User savedUser = userRepository.save(user);
            return userMapper.toUserPrivateDTO(savedUser);
+
         } catch (AppException e) {
             System.out.println(e.getMessage());
             throw ErrorFactory.internalServerError();
