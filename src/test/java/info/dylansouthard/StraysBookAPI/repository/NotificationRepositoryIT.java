@@ -182,51 +182,51 @@ public class NotificationRepositoryIT extends RepositoryIT {
     }
 
     //endregion
-//    //region UPDATE =======================================
-//    @Test
-//    @Transactional
-//    public void When_UpdatingNotification_Expect_NotificationIsAlertd() {
-//        Notification notification = notificationRepository.save(constructValidConditionUpdateNotification());
+    //region UPDATE =======================================
+    @Test
+    @Transactional
+    public void When_UpdatingNotification_Expect_NotificationIsUpdated() {
+        UpdateNotification notification = notificationRepository.save(constructValidConditionUpdateNotification());
+
+        notification.setNotes("test");
+
+        notificationRepository.save(notification);
+
+        Notification fetchedNotification = notificationRepository.findById(notification.getId()).get();
+
+        assertEquals("test", fetchedNotification.getNotes(), "Notification should be updated");
+    }
 //
-//        notification.setNotes("test");
-//
-//        notificationRepository.save(notification);
-//
-//        Notification fetchedNotification = notificationRepository.findById(notification.getId()).get();
-//
-//        assertEquals("test", fetchedNotification.getNotes(), "Notification should be updated");
-//    }
-//
-//    @Test
-//    @Transactional
-//    public void When_AddingAnimalsToNotification_Expect_NotificationIsAdded() {
-//        Notification notification = notificationRepository.save(constructValidConditionUpdateNotification());
-//        Notification fetchedNotification = notificationRepository.findById(notification.getId()).get();
-//        Animal fetchedAnimal = animalRepository.findById(notification.getAnimals().stream().findFirst().get().getId()).orElseThrow();
-//
-//        assertAll("Notification animal relationship assertions",
-//                ()->assertEquals(2, fetchedNotification.getAnimals().size(), "Animals should be saved to notification"),
-//                ()-> assertEquals(1, fetchedAnimal.getAssociatedNotifications().size(), "Notification should be saved to animal")
-//                );
-//    }
-//
-//    @Test
-//    @Transactional
-//    public void When_RemovingAnimalsFromNotification_Expect_NotificationIsRemoved() {
-//        Notification notification = notificationRepository.save(constructValidConditionUpdateNotification());
-//        Animal animal = notification.getAnimals().stream().findFirst().get();
-//        notification.removeAnimal(animal);
-//        assertEquals(1, notification.getAnimals().size(), "Animals should be removed from notification before saving");
-//        notificationRepository.saveAndFlush(notification);
-//
-//        Notification fetchedNotification = notificationRepository.findById(notification.getId()).get();
-//        Animal fetchedAnimal = animalRepository.findById(animal.getId()).orElseThrow();
-//
-//        assertAll("Notification animal relationship assertions",
-//                ()->assertEquals(1, fetchedNotification.getAnimals().size(), "Animals should be removed from notification"),
-//                ()-> assertEquals(0, fetchedAnimal.getAssociatedNotifications().size(), "Notification should be removed from animal")
-//        );
-//    }
+    @Test
+    @Transactional
+    public void When_AddingAnimalsToNotification_Expect_NotificationIsAdded() {
+        Notification notification = notificationRepository.save(constructValidConditionUpdateNotification());
+        Notification fetchedNotification = notificationRepository.findById(notification.getId()).get();
+        Animal fetchedAnimal = animalRepository.findById(notification.getAnimals().stream().findFirst().get().getId()).orElseThrow();
+
+        assertAll("Notification animal relationship assertions",
+                ()->assertEquals(2, fetchedNotification.getAnimals().size(), "Animals should be saved to notification"),
+                ()-> assertEquals(1, fetchedAnimal.getAssociatedNotifications().size(), "Notification should be saved to animal")
+                );
+    }
+
+    @Test
+    @Transactional
+    public void When_RemovingAnimalsFromNotification_Expect_NotificationIsRemoved() {
+        Notification notification = notificationRepository.save(constructValidConditionUpdateNotification());
+        Animal animal = notification.getAnimals().stream().findFirst().get();
+        notification.removeAnimal(animal);
+        assertEquals(1, notification.getAnimals().size(), "Animals should be removed from notification before saving");
+        notificationRepository.saveAndFlush(notification);
+
+        Notification fetchedNotification = notificationRepository.findById(notification.getId()).get();
+        Animal fetchedAnimal = animalRepository.findById(animal.getId()).orElseThrow();
+
+        assertAll("Notification animal relationship assertions",
+                ()->assertEquals(1, fetchedNotification.getAnimals().size(), "Animals should be removed from notification"),
+                ()-> assertEquals(0, fetchedAnimal.getAssociatedNotifications().size(), "Notification should be removed from animal")
+        );
+    }
 
     //endregion
 }
