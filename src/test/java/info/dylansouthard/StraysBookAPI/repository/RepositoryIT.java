@@ -1,12 +1,12 @@
 package info.dylansouthard.StraysBookAPI.repository;
 
 import info.dylansouthard.StraysBookAPI.BaseDBTest;
-import info.dylansouthard.StraysBookAPI.model.Notification;
 import info.dylansouthard.StraysBookAPI.model.enums.AnimalType;
-import info.dylansouthard.StraysBookAPI.model.enums.FeedItemType;
+import info.dylansouthard.StraysBookAPI.model.enums.NotificationContentType;
 import info.dylansouthard.StraysBookAPI.model.enums.SexType;
 import info.dylansouthard.StraysBookAPI.model.friendo.Animal;
 import info.dylansouthard.StraysBookAPI.model.friendo.Litter;
+import info.dylansouthard.StraysBookAPI.model.notification.UpdateNotification;
 import info.dylansouthard.StraysBookAPI.model.user.User;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -32,10 +32,12 @@ public class RepositoryIT extends BaseDBTest {
         return animals;
     }
 
-    protected Notification constructValidConditionUpdateFeedItem() {
+    protected UpdateNotification constructValidConditionUpdateNotification() {
         List<Animal> animals = constructAndSaveValidAnimals();
-        return new Notification(FeedItemType.CONDITION_UPDATE, animals);
+        return new UpdateNotification(NotificationContentType.CONDITION_UPDATE, animals);
     }
+
+
 
 
     protected Litter constructValidLitter() {

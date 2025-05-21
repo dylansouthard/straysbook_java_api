@@ -1,7 +1,7 @@
 package info.dylansouthard.StraysBookAPI.model.friendo;
 
 import info.dylansouthard.StraysBookAPI.model.CareEvent;
-import info.dylansouthard.StraysBookAPI.model.Notification;
+import info.dylansouthard.StraysBookAPI.model.notification.Notification;
 import info.dylansouthard.StraysBookAPI.model.SterilizationStatus;
 import info.dylansouthard.StraysBookAPI.model.Vaccination;
 import info.dylansouthard.StraysBookAPI.model.enums.AnimalType;
@@ -25,7 +25,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter @Setter
-@EqualsAndHashCode(callSuper = true, exclude = {"usersWatching", "careEvents", "conditions", "litter"})
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 public class Animal extends Friendo {
 
     @Column(nullable = false)
@@ -35,9 +35,11 @@ public class Animal extends Friendo {
     @Column
     private Boolean hasCollar;
 
-
     @Column
     private LocalDate born;
+
+    @Column
+    private LocalDateTime lastFed;
 
     @Column
     private Boolean shouldAppear = true;

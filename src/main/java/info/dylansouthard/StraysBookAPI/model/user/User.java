@@ -2,7 +2,7 @@ package info.dylansouthard.StraysBookAPI.model.user;
 
 import info.dylansouthard.StraysBookAPI.errors.exceptions.DuplicateOAuthProviderException;
 import info.dylansouthard.StraysBookAPI.model.CareEvent;
-import info.dylansouthard.StraysBookAPI.model.Notification;
+import info.dylansouthard.StraysBookAPI.model.notification.Notification;
 import info.dylansouthard.StraysBookAPI.model.base.DBEntity;
 import info.dylansouthard.StraysBookAPI.model.friendo.Animal;
 import info.dylansouthard.StraysBookAPI.model.friendo.Litter;

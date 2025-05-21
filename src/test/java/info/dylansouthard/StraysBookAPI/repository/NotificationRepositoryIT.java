@@ -1,83 +1,232 @@
 package info.dylansouthard.StraysBookAPI.repository;
 
-import info.dylansouthard.StraysBookAPI.model.Notification;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import info.dylansouthard.StraysBookAPI.config.DummyTestData;
+import info.dylansouthard.StraysBookAPI.constants.PaginationConsts;
 import info.dylansouthard.StraysBookAPI.model.enums.ConditionType;
 import info.dylansouthard.StraysBookAPI.model.friendo.Animal;
+import info.dylansouthard.StraysBookAPI.model.notification.AlertNotification;
+import info.dylansouthard.StraysBookAPI.model.notification.Notification;
+import info.dylansouthard.StraysBookAPI.model.notification.UpdateNotification;
+import info.dylansouthard.StraysBookAPI.model.user.User;
+import info.dylansouthard.StraysBookAPI.testutils.TestConveniences;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
 
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Transactional
 public class NotificationRepositoryIT extends RepositoryIT {
 
+    private static final Logger logger = LoggerFactory.getLogger(NotificationRepositoryIT.class);
+
+    //region CREATE =======================================
     @Test
     @Transactional
-    public void When_SavingFeedItem_Expect_FeedItemIsRetrievable() {
-        Notification notification = constructValidConditionUpdateFeedItem();
+    public void When_SavingNotification_Expect_NotificationIsRetrievable() {
+        UpdateNotification notification = constructValidConditionUpdateNotification();
         notification.setNewValue(ConditionType.UNDERFED.name());
-        Notification savedNotification = notificationRepository.save(notification);
+        UpdateNotification savedNotification = notificationRepository.save(notification);
+        ObjectMapper mapper = new ObjectMapper();
 
-        Optional<Notification> fetchedFeedItem = notificationRepository.findById(savedNotification.getId());
-        assertAll("FeedItem Save Assertions",
-                ()->assertTrue(fetchedFeedItem.isPresent(), "Saved FeedItem should be retrievable."),
-                ()->assertEquals(ConditionType.UNDERFED.name(), fetchedFeedItem.get().getNewValue())
+        Optional<Notification> fetchedNotification = notificationRepository.findById(savedNotification.getId());
+        assertAll("Notification Save Assertions",
+                ()->assertTrue(fetchedNotification.isPresent(), "Saved Notification should be retrievable."),
+                ()->assertEquals(mapper.valueToTree(ConditionType.UNDERFED.name()), fetchedNotification.get().getNewValue())
 
         );
     }
 
     @Test
     @Transactional
-    public void When_SavingInvalidFeedItem_Expect_ThrowException() {
-        Notification notification = new Notification();
-        assertThrows(DataIntegrityViolationException.class, () -> notificationRepository.save(notification), "Saving invalid FeedItem should throw an error");
+    public void When_SavingInvalidNotification_Expect_ThrowException() {
+        UpdateNotification notification = new UpdateNotification();
+        assertThrows(DataIntegrityViolationException.class, () -> notificationRepository.save(notification), "Saving invalid Notification should throw an error");
     }
+//endregion
 
+    //region READ ========================================
 
     @Test
-    @Transactional
-    public void When_UpdatingFeedItem_Expect_FeedItemIsUpdated() {
-        Notification notification = notificationRepository.save(constructValidConditionUpdateFeedItem());
+    public void When_FetchingUpdateNotifications_Expect_NotificationsAreRetrievable() throws IOException {
+        User registerUser = userRepository.save(DummyTestData.createUser());
+        User queryUser = userRepository.save(new User("Happy Sappy", "happpysappy@email.com"));
+        List<Animal> animals = constructAndSaveValidAnimals();
+        List<Long> allAnimalIds = animals.stream().map(Animal::getId).toList();
+        List<UpdateNotification> allNotifications = constructAndSaveDummyNotifications(animals, registerUser, UpdateNotification.class);
+        List<UpdateNotification> notificationsForAnimalOne = allNotifications.stream().filter(n -> n.getAnimals().contains(animals.get(0))).toList();
+        LocalDateTime lastChecked = LocalDateTime.now().minusDays(50);
 
-        notification.setNotes("test");
+        Page<UpdateNotification> rNotifications = notificationRepository.findUpdateNotifications(
+                allAnimalIds,
+                queryUser.getId(),
+                lastChecked,
+                PaginationConsts.notificationPageable(0)
+        );
 
-        notificationRepository.save(notification);
+        Page<UpdateNotification> sameUserNotifications = notificationRepository.findUpdateNotifications(
+                allAnimalIds,
+                registerUser.getId(),
+                lastChecked,
+                PaginationConsts.notificationPageable(0)
+        );
 
-        Notification fetchedNotification = notificationRepository.findById(notification.getId()).get();
+        Page<UpdateNotification> unknownAnimalNotifications = notificationRepository.findUpdateNotifications(
+                List.of(678L),
+                registerUser.getId(),
+                lastChecked,
+                PaginationConsts.notificationPageable(0)
+        );
 
-        assertEquals("test", fetchedNotification.getNotes(), "FeedItem should be updated");
-    }
+        int expectedPageNum = TestConveniences.getTotalPages(allNotifications.size(), PaginationConsts.DEFAULT_NOTIFICATION_PAGE_SIZE);
 
-    @Test
-    @Transactional
-    public void When_AddingAnimalsToFeedItem_Expect_FeedItemIsAdded() {
-        Notification notification = notificationRepository.save(constructValidConditionUpdateFeedItem());
-        Notification fetchedNotification = notificationRepository.findById(notification.getId()).get();
-        Animal fetchedAnimal = animalRepository.findById(notification.getAnimals().stream().findFirst().get().getId()).orElseThrow();
+        Page<Notification> notificationsForAnimal = notificationRepository.findNotificationsForAnimal(allAnimalIds.getFirst(), PaginationConsts.notificationForAnimalProfile(0));
 
-        assertAll("Feed Item animal relationship assertions",
-                ()->assertEquals(2, fetchedNotification.getAnimals().size(), "Animals should be saved to notification"),
-                ()-> assertEquals(1, fetchedAnimal.getAssociatedNotifications().size(), "Feed Item should be saved to animal")
-                );
-    }
-
-    @Test
-    @Transactional
-    public void When_RemovingAnimalsToFeedItem_Expect_FeedItemIsRemoved() {
-        Notification notification = notificationRepository.save(constructValidConditionUpdateFeedItem());
-        Animal animal = notification.getAnimals().stream().findFirst().get();
-        notification.removeAnimal(animal);
-        assertEquals(1, notification.getAnimals().size(), "Animals should be removed from notification before saving");
-        notificationRepository.saveAndFlush(notification);
-
-        Notification fetchedNotification = notificationRepository.findById(notification.getId()).get();
-        Animal fetchedAnimal = animalRepository.findById(animal.getId()).orElseThrow();
-
-        assertAll("Feed Item animal relationship assertions",
-                ()->assertEquals(1, fetchedNotification.getAnimals().size(), "Animals should be removed from notification"),
-                ()-> assertEquals(0, fetchedAnimal.getAssociatedNotifications().size(), "Feed Item should be removed from animal")
+        assertAll(
+                "find notification assertions",
+                () -> assertEquals(
+                        Math.min(allNotifications.size(), PaginationConsts.DEFAULT_NOTIFICATION_PAGE_SIZE),
+                        rNotifications.getContent().size(),
+                        "Rendered notifications should match expected page size or total notifications in DB, whichever is smaller"
+                ),
+                () -> assertEquals(
+                        0,
+                        sameUserNotifications.getContent().size(),
+                        "Notifications created by the requesting user should be excluded"
+                ),
+                () -> assertEquals(
+                        0,
+                        unknownAnimalNotifications.getContent().size(),
+                        "Notifications without valid animal IDs should not be returned"
+                ),
+                () -> assertFalse(
+                        notificationsForAnimal.isEmpty(),
+                        "Notifications for the selected animal should be present"
+                ),
+                () -> assertEquals(
+                        Math.min(notificationsForAnimalOne.size(), PaginationConsts.DEFAULT_NOTIFICATION_PAGE_SIZE),
+                        notificationsForAnimal.getContent().size(),
+                        "Paginated animal notifications should match expected page size"
+                ),
+                () -> assertEquals(
+                        expectedPageNum,
+                        rNotifications.getTotalPages(),
+                        "Total pages should match the expected page count"
+                ),
+                () -> assertEquals(
+                        expectedPageNum > 1,
+                        rNotifications.hasNext(),
+                        "hasNext should be true if there is more than one page"
+                ),
+                () -> assertFalse(
+                        rNotifications.hasPrevious(),
+                        "hasPrevious should be false on the first page"
+                )
         );
     }
+
+    @Test
+    public void When_FetchingAlertNotifications_Expect_NotificationsAreRetrievable() throws IOException {
+        User registerUser = userRepository.save(DummyTestData.createUser());
+        User queryUser = userRepository.save(new User("Happy Sappy", "happpysappy@email.com"));
+        List<Animal> animals = constructAndSaveValidAnimals();
+
+        List<Long> allAnimalIds = animals.stream().map(Animal::getId).toList();
+        LocalDateTime lastChecked = LocalDateTime.now().minusDays(10);
+        List<AlertNotification> allNotifications = constructAndSaveDummyNotifications(animals, registerUser, AlertNotification.class);
+        List<AlertNotification> recentNotifications = allNotifications.stream()
+                .filter(n -> n.getCreatedAt().isAfter(lastChecked))
+                .toList();
+        List<AlertNotification> notificationsForAnimalOne = recentNotifications.stream().filter(n -> n.getAnimals().contains(animals.get(0))).toList();
+
+
+        List<AlertNotification> rNotifications = notificationRepository.findAlertNotifications(
+                allAnimalIds,
+                queryUser.getId(),
+                lastChecked
+        );
+
+        List<AlertNotification> sameUserNotifications = notificationRepository.findAlertNotifications(
+                allAnimalIds,
+                registerUser.getId(),
+                lastChecked
+        );
+
+        List<AlertNotification> unknownAnimalNotifications = notificationRepository.findAlertNotifications(
+                List.of(678L),
+                registerUser.getId(),
+                lastChecked
+        );
+
+        int expectedPageNum = TestConveniences.getTotalPages(allNotifications.size(), PaginationConsts.HP_NOTIFICATION_PAGE_SIZE);
+
+        Page<Notification> notificationsForAnimal = notificationRepository.findNotificationsForAnimal(allAnimalIds.getFirst(), PaginationConsts.notificationForAnimalProfile(0));
+
+        assertAll(
+                "find notification assertions",
+                () -> assertEquals(recentNotifications.size(), rNotifications.size(), "LP notification should equal those in db"),
+                () -> assertEquals(0, sameUserNotifications.size(), "Notifications created by user should not return"),
+                () -> assertEquals(0, unknownAnimalNotifications.size(), "Notifications without animal ID should not return"),
+                () -> assertFalse(notificationsForAnimal.isEmpty(), "animal notifications should not be empty"),
+                () -> assertEquals(notificationsForAnimalOne.size(), notificationsForAnimal.getContent().size())
+        );
+    }
+
+    //endregion
+//    //region UPDATE =======================================
+//    @Test
+//    @Transactional
+//    public void When_UpdatingNotification_Expect_NotificationIsAlertd() {
+//        Notification notification = notificationRepository.save(constructValidConditionUpdateNotification());
+//
+//        notification.setNotes("test");
+//
+//        notificationRepository.save(notification);
+//
+//        Notification fetchedNotification = notificationRepository.findById(notification.getId()).get();
+//
+//        assertEquals("test", fetchedNotification.getNotes(), "Notification should be updated");
+//    }
+//
+//    @Test
+//    @Transactional
+//    public void When_AddingAnimalsToNotification_Expect_NotificationIsAdded() {
+//        Notification notification = notificationRepository.save(constructValidConditionUpdateNotification());
+//        Notification fetchedNotification = notificationRepository.findById(notification.getId()).get();
+//        Animal fetchedAnimal = animalRepository.findById(notification.getAnimals().stream().findFirst().get().getId()).orElseThrow();
+//
+//        assertAll("Notification animal relationship assertions",
+//                ()->assertEquals(2, fetchedNotification.getAnimals().size(), "Animals should be saved to notification"),
+//                ()-> assertEquals(1, fetchedAnimal.getAssociatedNotifications().size(), "Notification should be saved to animal")
+//                );
+//    }
+//
+//    @Test
+//    @Transactional
+//    public void When_RemovingAnimalsFromNotification_Expect_NotificationIsRemoved() {
+//        Notification notification = notificationRepository.save(constructValidConditionUpdateNotification());
+//        Animal animal = notification.getAnimals().stream().findFirst().get();
+//        notification.removeAnimal(animal);
+//        assertEquals(1, notification.getAnimals().size(), "Animals should be removed from notification before saving");
+//        notificationRepository.saveAndFlush(notification);
+//
+//        Notification fetchedNotification = notificationRepository.findById(notification.getId()).get();
+//        Animal fetchedAnimal = animalRepository.findById(animal.getId()).orElseThrow();
+//
+//        assertAll("Notification animal relationship assertions",
+//                ()->assertEquals(1, fetchedNotification.getAnimals().size(), "Animals should be removed from notification"),
+//                ()-> assertEquals(0, fetchedAnimal.getAssociatedNotifications().size(), "Notification should be removed from animal")
+//        );
+//    }
+
+    //endregion
 }

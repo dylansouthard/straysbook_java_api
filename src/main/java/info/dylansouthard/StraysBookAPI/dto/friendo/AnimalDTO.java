@@ -1,6 +1,7 @@
 package info.dylansouthard.StraysBookAPI.dto.friendo;
 
-import info.dylansouthard.StraysBookAPI.dto.*;
+import info.dylansouthard.StraysBookAPI.dto.ConditionDTO;
+import info.dylansouthard.StraysBookAPI.dto.StatusDTO;
 import info.dylansouthard.StraysBookAPI.dto.careEvent.CareEventSummaryDTO;
 import info.dylansouthard.StraysBookAPI.dto.user.UserSummaryMinDTO;
 import info.dylansouthard.StraysBookAPI.dto.vaccination.VaccinationSummaryDTO;
@@ -13,6 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,12 +50,14 @@ public class AnimalDTO extends FriendoDTO {
     private LocalDate born;
 
     @Schema(
-            description = "Is the animal sterilized?",
-            example = "false",
+            description = "The last time the animal is recorded as being fed",
+            example = "2021-01-01T14:30:00",
+            type = "string",
+            format = "date",
             nullable = true,
             requiredMode = Schema.RequiredMode.NOT_REQUIRED
     )
-    private boolean sterilized;
+    private LocalDateTime lastFed;
 
     @Schema(
             description = "Condition details of the animal",
@@ -68,6 +72,14 @@ public class AnimalDTO extends FriendoDTO {
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private StatusDTO status;
+
+    @Schema(
+            description = "Is the animal sterilized?",
+            example = "false",
+            nullable = true,
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED
+    )
+    private boolean sterilized;
 
     @ArraySchema(
             schema = @Schema(example = "{\"type\":\"RAB\", \"verificationStatus\":\"VERIFIED\"}"),

@@ -27,4 +27,6 @@ WHERE ST_DWithin(location::geography, ST_SetSRID(ST_MakePoint(:longitude, :latit
     Optional<Animal> findByActiveId(@Param("id") long id);
 
     String Sex(SexType sex);
+
+
 }

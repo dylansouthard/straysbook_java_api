@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 
-const routesPath = path.join(__dirname, '../src/main/resources/routes.json')
+const routesPath = path.join(__dirname, '../src/main/resources/data/routes.json')
 const outputPath = path.join(__dirname, '../src/main/java/info/dylansouthard/StraysBookAPI/constants/ApiRoutes.java')
 
 const data = JSON.parse(fs.readFileSync(routesPath, 'utf8'))

@@ -4,7 +4,7 @@ const {camelCase} = require('./utilities.js')
 
 const outputDirectory = path.join(__dirname, '../src/main/java/info/dylansouthard/StraysBookAPI/errors/');
 
-const errorsJsonPath = path.join(__dirname, '../src/main/resources/errors.json');
+const errorsJsonPath = path.join(__dirname, '../src/main/resources/data/errors.json');
 const codesOutputPath = outputDirectory + 'ErrorCodes.java';
 const messagesOutPath = outputDirectory + 'ErrorMessages.java';
 

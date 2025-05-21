@@ -3,7 +3,9 @@ package info.dylansouthard.StraysBookAPI.dto;
 import info.dylansouthard.StraysBookAPI.dto.careEvent.CareEventSummaryDTO;
 import info.dylansouthard.StraysBookAPI.dto.friendo.AnimalSummaryMinDTO;
 import info.dylansouthard.StraysBookAPI.dto.user.UserSummaryMinDTO;
-import info.dylansouthard.StraysBookAPI.model.enums.FeedItemType;
+import info.dylansouthard.StraysBookAPI.model.enums.NotificationContentType;
+import info.dylansouthard.StraysBookAPI.model.enums.NotificationType;
+import info.dylansouthard.StraysBookAPI.model.enums.PriorityType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,12 +32,28 @@ public class NotificationDTO {
     private Long id;
 
     @Schema(
-            description = "Type of notification (e.g., CARE_EVENT, STATUS_UPDATE, NOTE)",
+            description = "Type of notification content (e.g., CARE_EVENT, STATUS_UPDATE, NOTE)",
             example = "CARE_EVENT",
             nullable = false,
             requiredMode = Schema.RequiredMode.REQUIRED
     )
-    private FeedItemType type;
+    private NotificationContentType contentType;
+
+    @Schema(
+            description = "Type of notification",
+            example = "ALERT",
+            nullable = false,
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private NotificationType type;
+
+    @Schema(
+            description = "Priority level of the notification (e.g., LOW, MEDIUM, HIGH)",
+            example = "MEDIUM",
+            nullable = true,
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED
+    )
+    private PriorityType priority;
 
     @Schema(
             description = "List of animals associated with this notification",
@@ -57,7 +75,7 @@ public class NotificationDTO {
             nullable = true,
             requiredMode = Schema.RequiredMode.NOT_REQUIRED
     )
-    private String newValue;
+    private Object newValue;
 
     @Schema(
             description = "User who registered the notification",
@@ -83,4 +101,5 @@ public class NotificationDTO {
             requiredMode = Schema.RequiredMode.NOT_REQUIRED
     )
     private String notes;
+
 }

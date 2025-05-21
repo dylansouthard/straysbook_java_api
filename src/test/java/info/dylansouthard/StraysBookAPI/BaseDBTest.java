@@ -4,13 +4,18 @@ import info.dylansouthard.StraysBookAPI.config.DummyTestData;
 import info.dylansouthard.StraysBookAPI.model.CareEvent;
 import info.dylansouthard.StraysBookAPI.model.enums.CareEventType;
 import info.dylansouthard.StraysBookAPI.model.friendo.Animal;
+import info.dylansouthard.StraysBookAPI.model.notification.Notification;
 import info.dylansouthard.StraysBookAPI.model.user.User;
 import info.dylansouthard.StraysBookAPI.repository.*;
+import info.dylansouthard.StraysBookAPI.testutils.NotificationLoader;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 
 public class BaseDBTest extends BaseTestContainer{
     @PersistenceContext
@@ -44,6 +49,33 @@ public class BaseDBTest extends BaseTestContainer{
     protected CareEvent addAnimalAndSave(CareEvent event, Animal animal) {
         event.getAnimals().add(animal);
         return careEventRepository.saveAndFlush(event);
+    }
+
+    protected <T extends Notification> List<T> constructAndSaveDummyNotifications(List<Animal> animals, User registeredBy, Class<T> clazz) throws IOException {
+        if (animals.isEmpty()) return Collections.emptyList();
+
+        List<T> notifications = NotificationLoader.loadDummyNotifications(clazz);
+
+        for (int i = 0; i < notifications.size(); i++) {
+            T notification = notifications.get(i);
+            notification.setRegisteredBy(registeredBy);
+            notification.setCreatedAt(LocalDateTime.now().minusDays(i));
+
+            // Animal assignment logic
+            if (animals.size() == 1) {
+                notification.addAnimal(animals.get(0));
+            } else {
+                if (i % 2 == 0 || i % 3 == 0) {
+
+                    notification.addAnimal(animals.get(0));
+                }
+                if (i % 2 != 0 || i % 3 == 0) {
+                    notification.addAnimal(animals.get(1));
+                }
+            }
+        }
+
+        return notificationRepository.saveAll(notifications);
     }
 
     protected Animal createAnimalWithPrimaryCaretaker(User primaryCaretaker, User nonPrimaryCaretaker) {

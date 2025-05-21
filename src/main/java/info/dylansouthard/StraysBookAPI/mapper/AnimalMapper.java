@@ -9,6 +9,9 @@ import org.mapstruct.*;
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
         uses = {ConditionMapper.class, StatusMapper.class, UserMapper.class, VaccinationMapper.class})
 public interface AnimalMapper {
+
+    @Mapping(source = ".", target = "status", qualifiedByName = "mapStatus")
+    @Mapping(source = ".", target = "condition", qualifiedByName = "mapCondition")
     @Mapping(target="friendoType", expression ="java(info.dylansouthard.StraysBookAPI.model.enums.FriendoType.ANIMAL)")
     AnimalSummaryDTO toAnimalSummaryDTO(Animal animal);
 
@@ -17,6 +20,7 @@ public interface AnimalMapper {
     @Mapping(source = ".", target = "status", qualifiedByName = "mapStatus")
     @Mapping(source = "registeredBy", target = "registeredBy", qualifiedByName = "toUserSummaryMinDTO")
     AnimalDTO toAnimalDTO(Animal animal);
+
 
     AnimalSummaryMinDTO toAnimalSummaryMinDTO(Animal animal);
 

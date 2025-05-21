@@ -1,12 +1,17 @@
-package info.dylansouthard.StraysBookAPI.model;
+package info.dylansouthard.StraysBookAPI.model.notification;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import info.dylansouthard.StraysBookAPI.model.CareEvent;
 import info.dylansouthard.StraysBookAPI.model.base.UserRegisteredDBEntity;
-import info.dylansouthard.StraysBookAPI.model.enums.FeedItemType;
+import info.dylansouthard.StraysBookAPI.model.enums.NotificationContentType;
 import info.dylansouthard.StraysBookAPI.model.friendo.Animal;
 import info.dylansouthard.StraysBookAPI.model.user.User;
+import info.dylansouthard.StraysBookAPI.util.helpers.JsonHelper;
 import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.HashSet;
 import java.util.List;
@@ -14,15 +19,17 @@ import java.util.Set;
 
 @Entity
 @Table(name = "notifications")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "notification_type", discriminatorType = DiscriminatorType.STRING)
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter @Setter
 @EqualsAndHashCode(callSuper = true, exclude = {"animals", "careEvent"})
-public class Notification extends UserRegisteredDBEntity {
+public abstract class Notification extends UserRegisteredDBEntity {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private FeedItemType type;
+    protected NotificationContentType contentType;
 
     @ManyToMany
     @JoinTable(
@@ -30,19 +37,20 @@ public class Notification extends UserRegisteredDBEntity {
             joinColumns = @JoinColumn(name = "notification_id"),
             inverseJoinColumns = @JoinColumn(name = "animal_id")
     )
-    private Set<Animal> animals = new HashSet<>();
+    protected Set<Animal> animals = new HashSet<>();
 
     @OneToOne(mappedBy="notification")
-    private CareEvent careEvent;
+    protected CareEvent careEvent;
 
-    @Column
-    private String newValue;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "new_value", columnDefinition = "jsonb")
+    protected JsonNode newValue;
 
     public void addAnimal(Animal animal) {
         animals.add(animal);
-        if (!animal.getAssociatedNotifications().contains(this)) {
+
             animal.getAssociatedNotifications().add(this);
-        }
+
     }
 
     @Transactional
@@ -52,14 +60,14 @@ public class Notification extends UserRegisteredDBEntity {
     }
 
     @PreRemove
-    private void cleanUpRelationships()  {
+    protected void cleanUpRelationships()  {
         for (Animal animal : animals) {
             animal.getAssociatedNotifications().remove(this);
         }
     }
 
-    public Notification(FeedItemType type, List<Animal> animals) {
-        this.type = type;
+    public Notification(NotificationContentType contentType, List<Animal> animals) {
+        this.contentType = contentType;
         for (Animal animal : animals) {
             addAnimal(animal);
         }
@@ -68,10 +76,14 @@ public class Notification extends UserRegisteredDBEntity {
     public Notification(List<Animal> animals, CareEvent careEvent, User registeredBy){
 
         super(registeredBy);
-        this.type = FeedItemType.CARE_EVENT;
+        this.contentType = NotificationContentType.CARE_EVENT;
         for (Animal animal : animals) {
             addAnimal(animal);
         }
         this.careEvent = careEvent;
     }
+    public void setNewValue(Object rawValue) {
+        this.newValue = JsonHelper.convertToJsonNode(rawValue);
+    }
+
 }

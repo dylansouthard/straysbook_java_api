@@ -4,6 +4,8 @@ import info.dylansouthard.StraysBookAPI.model.base.UserRegisteredDBEntity;
 import info.dylansouthard.StraysBookAPI.model.enums.CareEventType;
 import info.dylansouthard.StraysBookAPI.model.friendo.Animal;
 import info.dylansouthard.StraysBookAPI.model.friendo.Litter;
+import info.dylansouthard.StraysBookAPI.model.notification.Notification;
+import info.dylansouthard.StraysBookAPI.model.notification.UpdateNotification;
 import info.dylansouthard.StraysBookAPI.model.user.User;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
@@ -57,9 +59,9 @@ public class CareEvent extends UserRegisteredDBEntity {
     private Notification notification;
 
 
-    public void createFeedItem() {
-        this.notification = new Notification(new ArrayList<>(animals), this, this.registeredBy);
-        System.out.println("notification type is " + this.notification.getType());
+    public void createNotification() {
+        this.notification = new UpdateNotification(new ArrayList<>(animals), this, this.registeredBy);
+        System.out.println("notification type is " + this.notification.getContentType());
     }
 
     public CareEvent(CareEventType type, LocalDateTime date, User registeredBy) {
@@ -67,7 +69,7 @@ public class CareEvent extends UserRegisteredDBEntity {
         this.type = type;
         this.date = date;
         registeredBy.getCareEvents().add(this);
-        createFeedItem();
+        createNotification();
     }
 
     public CareEvent(CareEventType type, User registeredBy) {
@@ -75,7 +77,7 @@ public class CareEvent extends UserRegisteredDBEntity {
         this.type = type;
         this.date = LocalDateTime.now();
         registeredBy.getCareEvents().add(this);
-        createFeedItem();
+        createNotification();
     }
 
     public CareEvent(CareEventType type, User registeredBy, List<Animal> animals) {
@@ -84,7 +86,7 @@ public class CareEvent extends UserRegisteredDBEntity {
         for (Animal animal : animals) {
             animal.getCareEvents().add(this);
         }
-        createFeedItem();
+        createNotification();
     }
 
     public void addAnimal(Animal animal) {
